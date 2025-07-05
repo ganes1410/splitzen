@@ -24,26 +24,32 @@ function CreateGroup() {
   }
 
   return (
-    <div className="p-4 space-y-4">
-      <h3 className="text-2xl font-bold">Create a new group</h3>
-      <form onSubmit={handleSubmit} className="space-y-2">
-        <label htmlFor="group-name" className="block text-lg font-medium">Group Name</label>
-        <Input
-          id="group-name"
-          name="group-name"
-          value={groupName}
-          onChange={(e) => setGroupName(e.target.value)}
-          placeholder="Enter group name"
-        />
-        <label htmlFor="user-name" className="block text-lg font-medium">Your Name</label>
-        <Input
-          id="user-name"
-          name="user-name"
-          value={userName}
-          onChange={(e) => setUserName(e.target.value)}
-          placeholder="Enter your name"
-        />
-        <Button type="submit">Create Group</Button>
+    <div className="container mx-auto p-4 space-y-6">
+      <h1 className="text-3xl font-bold text-center text-primary">Create a New Group</h1>
+      <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-6 bg-card rounded-lg shadow-md">
+        <div>
+          <label htmlFor="group-name" className="block text-sm font-medium text-foreground mb-1">Group Name</label>
+          <Input
+            id="group-name"
+            name="group-name"
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            placeholder="e.g., Japan Trip 2025"
+            className="w-full"
+          />
+        </div>
+        <div>
+          <label htmlFor="user-name" className="block text-sm font-medium text-foreground mb-1">Your Name</label>
+          <Input
+            id="user-name"
+            name="user-name"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="e.g., Alice"
+            className="w-full"
+          />
+        </div>
+        <Button type="submit" className="w-full">Create Group</Button>
       </form>
     </div>
   )

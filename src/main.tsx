@@ -32,7 +32,29 @@ declare module '@tanstack/react-router' {
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
-  root.render(
+
+// Inject theme script to prevent flicker
+const themeScript = document.createElement('script');
+themeScript.innerHTML = `
+  const savedTheme = localStorage.getItem('theme');
+  console.log("Script: savedTheme", savedTheme);
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  console.log("Script: prefersDark", prefersDark);
+
+  if (savedTheme) {
+    document.documentElement.classList.add(savedTheme);
+    console.log("Script: Applying saved theme", savedTheme);
+  } else if (prefersDark) {
+    document.documentElement.classList.add('dark');
+    console.log("Script: Applying dark theme from system preference");
+  } else {
+    document.documentElement.classList.add('light');
+    console.log("Script: Applying light theme by default");
+  }
+`;
+document.head.prepend(themeScript);
+
+root.render(
     <StrictMode>
       <ConvexProvider client={convex}>
         <RouterProvider router={router} />

@@ -80,40 +80,36 @@ function NewExpense() {
     users && payerId && amount && description && splitWith.length > 0;
 
   return (
-    <div className="p-4 space-y-4">
-      <h3 className="text-2xl font-bold">Add Expense to Group </h3>
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <div className="container mx-auto p-4 space-y-6">
+      <h1 className="text-3xl font-bold text-center text-primary">Add Expense to Group <span className="text-muted-foreground">{groupId}</span></h1>
+      <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-6 bg-card rounded-lg shadow-md">
         <div>
-          <label htmlFor="amount" className="block text-lg font-medium">
-            Amount
-          </label>
+          <label htmlFor="amount" className="block text-sm font-medium text-foreground mb-1">Amount</label>
           <Input
             id="amount"
             name="amount"
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="Enter amount"
+            placeholder="e.g., 25.50"
+            className="w-full"
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-lg font-medium">
-            Description
-          </label>
+          <label htmlFor="description" className="block text-sm font-medium text-foreground mb-1">Description</label>
           <Input
             id="description"
             name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter description"
+            placeholder="e.g., Dinner at Italian restaurant"
+            className="w-full"
           />
         </div>
 
         <div>
-          <label htmlFor="payer" className="block text-lg font-medium">
-            Paid By
-          </label>
+          <label htmlFor="payer" className="block text-sm font-medium text-foreground mb-1">Paid By</label>
           <select
             id="payer"
             name="payer"
@@ -131,8 +127,8 @@ function NewExpense() {
         </div>
 
         <div>
-          <label className="block text-lg font-medium">Split Among</label>
-          <div className="flex flex-wrap gap-2">
+          <label className="block text-sm font-medium text-foreground mb-1">Split Among</label>
+          <div className="flex flex-wrap gap-3 p-2 border rounded-md bg-input/20">
             {users?.map((user) => (
               <div key={user._id} className="flex items-center space-x-2">
                 <input
@@ -140,20 +136,21 @@ function NewExpense() {
                   id={`split-${user._id}`}
                   checked={splitWith.includes(user._id)}
                   onChange={() => handleSplitWithChange(user._id)}
+                  className="form-checkbox h-4 w-4 text-primary rounded focus:ring-primary"
                 />
-                <label htmlFor={`split-${user._id}`}>{user.name}</label>
+                <label htmlFor={`split-${user._id}`} className="text-foreground text-sm">{user.name}</label>
               </div>
             ))}
           </div>
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={!isFormValid}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          className="w-full"
         >
           Add Expense
-        </button>
+        </Button>
       </form>
     </div>
   );

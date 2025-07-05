@@ -38,8 +38,11 @@ function GroupPage() {
   const [settleNote, setSettleNote] = useState("");
 
   const [showDeleteGroupConfirm, setShowDeleteGroupConfirm] = useState(false);
-  const [showDeleteExpenseConfirm, setShowDeleteExpenseConfirm] = useState(false);
-  const [expenseToDelete, setExpenseToDelete] = useState<Id<"expenses"> | null>(null);
+  const [showDeleteExpenseConfirm, setShowDeleteExpenseConfirm] =
+    useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<Id<"expenses"> | null>(
+    null
+  );
 
   const handleDeleteGroup = async () => {
     await deleteGroup({ groupId: groupId as Id<"groups"> });
@@ -80,143 +83,207 @@ function GroupPage() {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <h3 className="text-2xl font-bold">Group: {group?.name}</h3>
-      <p className="text-gray-600">
-        Invite Code: <span className="font-semibold">{group?.inviteCode}</span>
+    <div className="container mx-auto p-4 space-y-6">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-3xl font-bold text-primary">
+          Group: {group?.name}
+        </h1>
+        <div className="flex space-x-2">
+          <Button
+            onClick={() =>
+              router.navigate({ to: `/group/${groupId}/new-expense` })
+            }
+          >
+            Add Expense
+          </Button>
+          <Button
+            onClick={() => setShowDeleteGroupConfirm(true)}
+            variant="destructive"
+          >
+            Delete Group
+          </Button>
+        </div>
+      </div>
+
+      <p className="text-lg text-muted-foreground">
+        Invite Code:{" "}
+        <span className="font-semibold text-foreground">
+          {group?.inviteCode}
+        </span>
       </p>
 
-      <Button onClick={() => router.navigate({ to: `/group/${groupId}/new-expense` })}>Add Expense</Button>
-      <Button onClick={() => setShowDeleteGroupConfirm(true)} className="bg-red-500 hover:bg-red-600 text-white">Delete Group</Button>
       <Outlet />
-      {expenses?.length === 0 ? (
-        <p className="text-gray-500">No expenses yet.</p>
-      ) : (
-        <ul className="space-y-2">
-          {expenses?.map((expense) => (
-            <li key={expense._id} className="p-2 border rounded-md flex justify-between items-center">
-              <div>
-                <span className="font-semibold">
-                  {getUserName(expense.payerId)}
-                </span>{" "}
-                paid <span className="font-semibold">{expense.amount}</span> for{" "}
-                {""}
-                {expense.description} (split among:
-                {expense.splitAmong
-                  .map((userId) => getUserName(userId))
-                  .join(", ")}
-                )
-              </div>
-              <Button
-                onClick={() => handleDeleteExpense(expense._id as Id<"expenses">)}
-                className="bg-red-500 hover:bg-red-600 text-white"
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-bold text-primary">Expenses</h2>
+        {expenses?.length === 0 ? (
+          <p className="text-muted-foreground">No expenses yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {expenses?.map((expense) => (
+              <li
+                key={expense._id}
+                className="p-4 border rounded-lg shadow-sm flex justify-between items-center bg-card"
               >
-                Delete
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
+                <div>
+                  <p className="text-lg font-semibold text-foreground">
+                    {getUserName(expense.payerId)} paid {expense.amount} for{" "}
+                    {expense.description}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Split among:{" "}
+                    {expense.splitAmong
+                      .map((userId) => getUserName(userId))
+                      .join(", ")}
+                  </p>
+                </div>
+                <Button
+                  onClick={() =>
+                    handleDeleteExpense(expense._id as Id<"expenses">)
+                  }
+                  variant="destructive"
+                  size="sm"
+                >
+                  Delete
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
-      <h4 className="text-xl font-bold">Balances</h4>
-      {balances?.length === 0 ? (
-        <p className="text-gray-500">No outstanding balances.</p>
-      ) : (
-        <ul className="space-y-2">
-          {balances?.map((balance, index) => (
-            <li key={index} className="p-2 border rounded-md">
-              <span className="font-semibold">{getUserName(balance.from)}</span>{" "}
-              owes{" "}
-              <span className="font-semibold">{getUserName(balance.to)}</span>{" "}
-              <span className="font-semibold">{balance.amount.toFixed(2)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+      <section className="space-y-4">
+        <h2 className="text-2xl font-bold text-primary">Balances</h2>
+        {balances?.length === 0 ? (
+          <p className="text-muted-foreground">No outstanding balances.</p>
+        ) : (
+          <ul className="space-y-3">
+            {balances?.map((balance, index) => (
+              <li
+                key={index}
+                className="p-4 border rounded-lg shadow-sm bg-card"
+              >
+                <p className="text-lg text-foreground">
+                  <span className="font-semibold">
+                    {getUserName(balance.from)}
+                  </span>{" "}
+                  owes{" "}
+                  <span className="font-semibold">
+                    {getUserName(balance.to)}
+                  </span>{" "}
+                  <span className="font-semibold">
+                    {balance.amount.toFixed(2)}
+                  </span>
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
-      <Button onClick={() => setShowSettleForm(!showSettleForm)}>
-        {showSettleForm ? "Cancel Settle Up" : "Settle Up"}
-      </Button>
-
-      {showSettleForm && (
-        <form
-          onSubmit={handleSettle}
-          className="space-y-2 p-4 border rounded-md"
+      <section className="space-y-4">
+        <Button
+          onClick={() => setShowSettleForm(!showSettleForm)}
+          className="w-full"
         >
-          <h4 className="text-xl font-bold">Record Settlement</h4>
-          <div>
-            <label htmlFor="settle-from" className="block text-lg font-medium">
-              From
-            </label>
-            <select
-              id="settle-from"
-              name="settle-from"
-              value={settleFrom}
-              onChange={(e) => setSettleFrom(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">Select User</option>
-              {users?.map((user) => (
-                <option key={user._id} value={user._id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {showSettleForm ? "Cancel Settle Up" : "Settle Up"}
+        </Button>
 
-          <div>
-            <label htmlFor="settle-to" className="block text-lg font-medium">
-              To
-            </label>
-            <select
-              id="settle-to"
-              name="settle-to"
-              value={settleTo}
-              onChange={(e) => setSettleTo(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">Select User</option>
-              {users?.map((user) => (
-                <option key={user._id} value={user._id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        {showSettleForm && (
+          <form
+            onSubmit={handleSettle}
+            className="space-y-4 p-6 border rounded-lg shadow-md bg-card"
+          >
+            <h3 className="text-xl font-bold text-primary">
+              Record Settlement
+            </h3>
+            <div>
+              <label
+                htmlFor="settle-from"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
+                From
+              </label>
+              <select
+                id="settle-from"
+                name="settle-from"
+                value={settleFrom}
+                onChange={(e) => setSettleFrom(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Select User</option>
+                {users?.map((user) => (
+                  <option key={user._id} value={user._id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label
-              htmlFor="settle-amount"
-              className="block text-lg font-medium"
-            >
-              Amount
-            </label>
-            <Input
-              id="settle-amount"
-              name="settle-amount"
-              type="number"
-              value={settleAmount}
-              onChange={(e) => setSettleAmount(e.target.value)}
-              placeholder="Enter amount"
-            />
-          </div>
+            <div>
+              <label
+                htmlFor="settle-to"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
+                To
+              </label>
+              <select
+                id="settle-to"
+                name="settle-to"
+                value={settleTo}
+                onChange={(e) => setSettleTo(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Select User</option>
+                {users?.map((user) => (
+                  <option key={user._id} value={user._id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label htmlFor="settle-note" className="block text-lg font-medium">
-              Note (Optional)
-            </label>
-            <Input
-              id="settle-note"
-              name="settle-note"
-              value={settleNote}
-              onChange={(e) => setSettleNote(e.target.value)}
-              placeholder="Add a note"
-            />
-          </div>
+            <div>
+              <label
+                htmlFor="settle-amount"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
+                Amount
+              </label>
+              <Input
+                id="settle-amount"
+                name="settle-amount"
+                type="number"
+                value={settleAmount}
+                onChange={(e) => setSettleAmount(e.target.value)}
+                placeholder="Enter amount"
+                className="w-full"
+              />
+            </div>
 
-          <Button type="submit">Record Settlement</Button>
-        </form>
-      )}
+            <div>
+              <label
+                htmlFor="settle-note"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
+                Note (Optional)
+              </label>
+              <Input
+                id="settle-note"
+                name="settle-note"
+                value={settleNote}
+                onChange={(e) => setSettleNote(e.target.value)}
+                placeholder="Add a note"
+                className="w-full"
+              />
+            </div>
+
+            <Button type="submit" className="w-full">
+              Record Settlement
+            </Button>
+          </form>
+        )}
+      </section>
 
       <ConfirmDialog
         open={showDeleteGroupConfirm}
