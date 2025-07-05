@@ -11,6 +11,10 @@ export const create = mutation({
     note: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const group = await ctx.db.get(args.groupId);
+    if (!group) {
+      throw new Error("Group not found");
+    }
     const settlementId = await ctx.db.insert("settlements", args);
     return { settlementId };
   },

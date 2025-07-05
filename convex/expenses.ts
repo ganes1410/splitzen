@@ -11,6 +11,10 @@ export const create = mutation({
     splitAmong: v.array(v.id("users")),
   },
   handler: async (ctx, args) => {
+    const group = await ctx.db.get(args.groupId);
+    if (!group) {
+      throw new Error("Group not found");
+    }
     const expenseId = await ctx.db.insert("expenses", args);
     return { expenseId };
   },

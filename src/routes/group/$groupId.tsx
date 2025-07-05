@@ -23,6 +23,12 @@ function GroupPage() {
   const group = useQuery(api.groups.getGroup, {
     groupId: groupId as Id<"groups">,
   });
+
+  // Redirect if group is not found (e.g., deleted)
+  if (group === null) {
+    router.navigate({ to: "/" });
+    return null; // Or a loading/error state if preferred
+  }
   const expenses = useQuery(api.expenses.getExpensesInGroup, {
     groupId: groupId as Id<"groups">,
   });
