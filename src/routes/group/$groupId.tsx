@@ -7,9 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
-export const Route = createFileRoute("/group/$groupId")({
+export const Route = createFileRoute('/group/$groupId')({
   component: GroupPage,
-});
+  loader: async ({ params }) => {
+    return { groupId: params.groupId } as { groupId: Id<"groups"> };
+  },
+  staticData: ({ loaderData }: { loaderData: { groupId: Id<"groups"> } }) => ({
+    title: `Splitzen - Group ${loaderData.groupId}`,
+  }),
+})
 
 function GroupPage() {
   const { groupId } = Route.useParams();

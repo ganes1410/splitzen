@@ -3,15 +3,26 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useState } from "react";
+import { z } from "zod";
 
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/group/$groupId/new-expense")({
-  component: NewExpense,
+const expenseSchema = z.object({
+  amount: z.number().min(0.01, "Amount must be greater than 0"),
+  description: z.string().min(1, "Description cannot be empty"),
+  payerId: z.string().min(1, "Please select a payer"),
+  splitAmong: z.array(z.string()).min(1, "Please select at least one person to split with"),
 });
 
+export const Route = createFileRoute('/group/$groupId/new-expense')({
+  component: NewExpense,
+  staticData: ({ loaderData }: { loaderData: { groupId: string } }) => ({
+    title: `Splitzen - Add Expense to ${loaderData.groupId}`,
+  }),
+})
+
 function NewExpense() {
-  console.log("NewExpense component mounted");
   const { groupId } = Route.useParams();
   const router = useRouter();
   const createExpense = useMutation(api.expenses.create);
@@ -19,6 +30,7 @@ function NewExpense() {
   const [description, setDescription] = useState("");
   const [payerId, setPayerId] = useState("");
   const [splitWith, setSplitWith] = useState<Id<"users">[]>([]);
+  const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
 
   const handleSplitWithChange = (userId: Id<"users">) => {
     setSplitWith((prev) =>
@@ -32,8 +44,6 @@ function NewExpense() {
     groupId: groupId as Id<"groups">,
   });
 
-  console.log("Users data:", users);
-
   if (users === undefined) {
     return <div>Loading users...</div>;
   }
@@ -44,35 +54,32 @@ function NewExpense() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("handleSubmit called");
-    if (!users) {
-      console.log("Users not loaded yet.");
-      return;
-    }
-    if (!payerId) {
-      console.log("Payer not selected.");
-      alert("Please select a payer.");
-      return;
-    }
-    if (splitWith.length === 0) {
-      console.log("No one selected to split with.");
-      alert("Please select at least one person to split the expense with.");
+    setErrors(null);
+
+    const result = expenseSchema.safeParse({
+      amount: parseFloat(amount),
+      description,
+      payerId,
+      splitAmong: splitWith,
+    });
+
+    if (!result.success) {
+      setErrors(result.error.issues);
       return;
     }
 
     try {
       await createExpense({
         groupId: groupId as Id<"groups">,
-        payerId: payerId as Id<"users">,
-        amount: parseFloat(amount),
-        description,
-        splitAmong: splitWith,
+        payerId: result.data.payerId as Id<"users">,
+        amount: result.data.amount,
+        description: result.data.description,
+        splitAmong: result.data.splitAmong as Id<"users">[],
       });
-      console.log("Expense created successfully.");
       router.navigate({ to: `/group/${groupId}` });
     } catch (error) {
       console.error("Error creating expense:", error);
-      alert("Error creating expense. Check console for details.");
+      setErrors([{ message: "Failed to create expense. Please try again." } as z.ZodIssue]);
     }
   };
 
@@ -81,10 +88,21 @@ function NewExpense() {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-3xl font-bold text-center text-primary">Add Expense to Group <span className="text-muted-foreground">{groupId}</span></h1>
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-6 bg-card rounded-lg shadow-md">
+      <h1 className="text-3xl font-bold text-center text-primary">
+        Add Expense to Group{" "}
+        <span className="text-muted-foreground">{groupId}</span>
+      </h1>
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-w-md mx-auto p-6 bg-card rounded-lg shadow-md"
+      >
         <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-foreground mb-1">Amount</label>
+          <label
+            htmlFor="amount"
+            className="block text-sm font-medium text-foreground mb-1"
+          >
+            Amount
+          </label>
           <Input
             id="amount"
             name="amount"
@@ -94,10 +112,20 @@ function NewExpense() {
             placeholder="e.g., 25.50"
             className="w-full"
           />
+          {errors?.find((e) => e.path[0] === "amount") && (
+            <p className="text-destructive text-sm mt-1">
+              {errors.find((e) => e.path[0] === "amount")?.message}
+            </p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-foreground mb-1">Description</label>
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-foreground mb-1"
+          >
+            Description
+          </label>
           <Input
             id="description"
             name="description"
@@ -106,10 +134,20 @@ function NewExpense() {
             placeholder="e.g., Dinner at Italian restaurant"
             className="w-full"
           />
+          {errors?.find((e) => e.path[0] === "description") && (
+            <p className="text-destructive text-sm mt-1">
+              {errors.find((e) => e.path[0] === "description")?.message}
+            </p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="payer" className="block text-sm font-medium text-foreground mb-1">Paid By</label>
+          <label
+            htmlFor="payer"
+            className="block text-sm font-medium text-foreground mb-1"
+          >
+            Paid By
+          </label>
           <select
             id="payer"
             name="payer"
@@ -124,10 +162,17 @@ function NewExpense() {
               </option>
             ))}
           </select>
+          {errors?.find((e) => e.path[0] === "payerId") && (
+            <p className="text-destructive text-sm mt-1">
+              {errors.find((e) => e.path[0] === "payerId")?.message}
+            </p>
+          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Split Among</label>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Split Among
+          </label>
           <div className="flex flex-wrap gap-3 p-2 border rounded-md bg-input/20">
             {users?.map((user) => (
               <div key={user._id} className="flex items-center space-x-2">
@@ -138,17 +183,27 @@ function NewExpense() {
                   onChange={() => handleSplitWithChange(user._id)}
                   className="form-checkbox h-4 w-4 text-primary rounded focus:ring-primary"
                 />
-                <label htmlFor={`split-${user._id}`} className="text-foreground text-sm">{user.name}</label>
+                <label
+                  htmlFor={`split-${user._id}`}
+                  className="text-foreground text-sm"
+                >
+                  {user.name}
+                </label>
               </div>
             ))}
           </div>
+          {errors?.find((e) => e.path[0] === "splitAmong") && (
+            <p className="text-destructive text-sm mt-1">
+              {errors.find((e) => e.path[0] === "splitAmong")?.message}
+            </p>
+          )}
         </div>
 
-        <Button
-          type="submit"
-          disabled={!isFormValid}
-          className="w-full"
-        >
+        {errors && !errors.some(e => ["amount", "description", "payerId", "splitAmong"].includes(e.path[0] as string)) && (
+          <p className="text-destructive text-sm mt-1">{errors[0].message}</p>
+        )}
+
+        <Button type="submit" disabled={!isFormValid} className="w-full">
           Add Expense
         </Button>
       </form>

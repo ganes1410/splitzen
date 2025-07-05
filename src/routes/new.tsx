@@ -1,34 +1,66 @@
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { z } from "zod";
 
-import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { useMutation } from 'convex/react'
-import { api } from '../../convex/_generated/api'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-
-export const Route = createFileRoute('/new')({
+export const Route = createFileRoute("/new")({
   component: CreateGroup,
-})
+});
+
+const createGroupSchema = z.object({
+  groupName: z.string().min(3, "Group name must be at least 3 characters"),
+  userName: z.string().min(2, "Your name must be at least 2 characters"),
+});
 
 function CreateGroup() {
-  const createGroup = useMutation(api.groups.create)
-  const router = useRouter()
-  const [groupName, setGroupName] = useState('')
-  const [userName, setUserName] = useState('')
+  const createGroup = useMutation(api.groups.create);
+  const router = useRouter();
+  const [groupName, setGroupName] = useState("");
+  const [userName, setUserName] = useState("");
+  const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const { groupId, sessionId } = await createGroup({ groupName, userName })
-    localStorage.setItem(`sessionId_${groupId}`, sessionId)
-    router.navigate({ to: `/group/${groupId}` })
-  }
+    e.preventDefault();
+    setErrors(null);
+
+    const result = createGroupSchema.safeParse({ groupName, userName });
+
+    if (!result.success) {
+      setErrors(result.error.issues);
+      return;
+    }
+
+    try {
+      const { groupId, sessionId } = await createGroup(result.data);
+      localStorage.setItem(`sessionId_${groupId}`, sessionId);
+      router.navigate({ to: `/group/${groupId}` });
+    } catch (error) {
+      console.error("Error creating group:", error);
+      setErrors([
+        { message: "Failed to create group. Please try again." } as z.ZodIssue,
+      ]);
+    }
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-3xl font-bold text-center text-primary">Create a New Group</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-6 bg-card rounded-lg shadow-md">
+      <h1 className="text-3xl font-bold text-center text-primary">
+        Create a New Group
+      </h1>
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-w-md mx-auto p-6 bg-card rounded-lg shadow-md"
+      >
         <div>
-          <label htmlFor="group-name" className="block text-sm font-medium text-foreground mb-1">Group Name</label>
+          <label
+            htmlFor="group-name"
+            className="block text-sm font-medium text-foreground mb-1"
+          >
+            Group Name
+          </label>
           <Input
             id="group-name"
             name="group-name"
@@ -37,9 +69,19 @@ function CreateGroup() {
             placeholder="e.g., Japan Trip 2025"
             className="w-full"
           />
+          {errors?.find((e) => e.path[0] === "groupName") && (
+            <p className="text-destructive text-sm mt-1">
+              {errors.find((e) => e.path[0] === "groupName")?.message}
+            </p>
+          )}
         </div>
         <div>
-          <label htmlFor="user-name" className="block text-sm font-medium text-foreground mb-1">Your Name</label>
+          <label
+            htmlFor="user-name"
+            className="block text-sm font-medium text-foreground mb-1"
+          >
+            Your Name
+          </label>
           <Input
             id="user-name"
             name="user-name"
@@ -48,9 +90,22 @@ function CreateGroup() {
             placeholder="e.g., Alice"
             className="w-full"
           />
+          {errors?.find((e) => e.path[0] === "userName") && (
+            <p className="text-destructive text-sm mt-1">
+              {errors.find((e) => e.path[0] === "userName")?.message}
+            </p>
+          )}
         </div>
-        <Button type="submit" className="w-full">Create Group</Button>
+        {errors &&
+          !errors.some((e) =>
+            ["groupName", "userName"].includes(e.path[0] as string)
+          ) && (
+            <p className="text-destructive text-sm mt-1">{errors[0].message}</p>
+          )}
+        <Button type="submit" className="w-full">
+          Create Group
+        </Button>
       </form>
     </div>
-  )
+  );
 }

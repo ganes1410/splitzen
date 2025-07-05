@@ -6,6 +6,9 @@ import { Input } from '@/components/ui/input'
 
 export const Route = createFileRoute('/')({
   component: Home,
+  staticData: {
+    title: 'Splitzen - Welcome',
+  },
 })
 
 function Home() {
