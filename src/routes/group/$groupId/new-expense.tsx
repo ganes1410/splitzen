@@ -4,12 +4,12 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { ExpenseForm } from "@/components/expense-form";
 
-export const Route = createFileRoute('/group/$groupId/new-expense')({
+export const Route = createFileRoute("/group/$groupId/new-expense")({
   component: NewExpense,
   staticData: ({ loaderData }: { loaderData: { groupId: string } }) => ({
     title: `Splitzen - Add Expense to ${loaderData.groupId}`,
   }),
-})
+});
 
 function NewExpense() {
   const { groupId } = Route.useParams();
@@ -37,11 +37,13 @@ function NewExpense() {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <h1 className="text-3xl font-bold text-center text-primary">
-        Add Expense to Group{" "}
-        <span className="text-muted-foreground">{groupId}</span>
+        Add Expense to Group
       </h1>
-      <ExpenseForm groupId={groupId as Id<"groups">} onSubmit={handleSubmit} submitButtonText="Add Expense" />
+      <ExpenseForm
+        groupId={groupId as Id<"groups">}
+        onSubmit={handleSubmit}
+        submitButtonText="Add Expense"
+      />
     </div>
   );
 }
-
