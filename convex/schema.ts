@@ -10,6 +10,8 @@ export default defineSchema({
   users: defineTable({
     name: v.string(),
     userId: v.optional(v.string()),
+    groupId: v.optional(v.string()),
+    sessionId: v.optional(v.string()),
   }).index("by_userId", ["userId"]),
   members: defineTable({
     userId: v.id("users"),
