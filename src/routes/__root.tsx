@@ -28,18 +28,23 @@ const RootLayout = () => {
     userId === null ? "skip" : { userId }
   );
   const { state } = useSidebar();
+  const isSidebarCollapsed = state === "collapsed";
 
   return (
     <div className="flex min-h-screen">
       <Sidebar
-        className={`flex flex-col ${state === "collapsed" ? "w-16" : "w-60"}`}
+        className={`flex flex-col ${isSidebarCollapsed ? "w-24" : "w-60"}`}
         collapsible="icon"
       >
         <SidebarHeader>
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Splitzen</h2>
+          {isSidebarCollapsed ? (
             <SidebarTrigger />
-          </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Splitzen</h2>
+              <SidebarTrigger />
+            </div>
+          )}
         </SidebarHeader>
         <SidebarContent className="flex-grow overflow-y-auto">
           <SidebarGroup>
