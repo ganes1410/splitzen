@@ -151,6 +151,18 @@ function GroupPage() {
                 </div>
                 <Button
                   onClick={() =>
+                    router.navigate({
+                      to: `/group/${groupId}/edit-expense/${expense._id}`,
+                    })
+                  }
+                  variant="outline"
+                  size="sm"
+                  className="mr-2"
+                >
+                  Edit
+                </Button>
+                <Button
+                  onClick={() =>
                     handleDeleteExpense(expense._id as Id<"expenses">)
                   }
                   variant="destructive"

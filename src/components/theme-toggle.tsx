@@ -7,10 +7,10 @@ export function ThemeToggle() {
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme) {
       return savedTheme
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark'
-    } else {
+    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
       return 'light'
+    } else {
+      return 'dark'
     }
   })
 

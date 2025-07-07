@@ -1,5 +1,5 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useMutation } from "convex/react";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,9 +21,28 @@ function JoinGroup() {
   const [name, setName] = useState("");
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
 
+  const group = useQuery(api.groups.getGroupbyInviteCode, { inviteCode });
+  const userId = localStorage.getItem("userId");
+  const userMembership = useQuery(
+    api.users.getMembership,
+    userId && group ? { userId, groupId: group._id } : "skip"
+  );
+
+  console.log("inviteCode:", inviteCode);
+  console.log("userId:", userId);
+  console.log("group:", group);
+  console.log("userMembership:", userMembership);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors(null);
+
+    if (!group) {
+      setErrors([
+        { message: "Invalid invite code. Group not found." } as z.ZodIssue,
+      ]);
+      return;
+    }
 
     const result = joinGroupSchema.safeParse({ name });
 
@@ -32,8 +51,9 @@ function JoinGroup() {
       return;
     }
 
+    if (!userId) return;
+
     try {
-      let userId = localStorage.getItem("userId");
       const { groupId, userId: newUserId } = await joinGroup({
         name: result.data.name,
         inviteCode,
@@ -43,16 +63,58 @@ function JoinGroup() {
         localStorage.setItem("userId", newUserId);
       }
       router.navigate({ to: `/group/${groupId}` });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error joining group:", error);
+      let errorMessage = "Failed to join group. Please try again.";
+      if (error.message && error.message.includes("already a member")) {
+        errorMessage = "You are already a member of this group.";
+      }
       setErrors([
         {
-          message:
-            "Failed to join group. Please check the invite code and try again.",
+          message: errorMessage,
         } as z.ZodIssue,
       ]);
     }
   };
+
+  if (group === undefined) {
+    return <div>Loading group details...</div>;
+  }
+
+  if (group === null) {
+    return (
+      <div className="container mx-auto p-4 space-y-6 text-center">
+        <h1 className="text-3xl font-bold text-destructive">
+          Invalid Invite Code
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          The invite code "{inviteCode}" is not valid or the group does not
+          exist.
+        </p>
+        <Button asChild>
+          <Link to="/">Go to Home</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (userMembership === undefined) {
+    return <div>Loading membership details...</div>;
+  }
+
+  if (userMembership) {
+    return (
+      <div className="container mx-auto p-4 space-y-6 text-center">
+        <h1 className="text-3xl font-bold text-primary">Already a Member</h1>
+        <p className="text-lg text-muted-foreground">
+          You are already a member of the group "{group.name}".
+        </p>
+        <Button asChild>
+          <Link to={`/group/${group._id}`}>Go to Group</Link>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -60,8 +122,8 @@ function JoinGroup() {
         Join Group
       </h1>
       <p className="text-lg text-center text-muted-foreground">
-        You are about to join a group with invite code:{" "}
-        <span className="font-semibold text-foreground">{inviteCode}</span>
+        You are about to join group:{" "}
+        <span className="font-semibold text-foreground">{group.name}</span>
       </p>
       <form
         onSubmit={handleSubmit}

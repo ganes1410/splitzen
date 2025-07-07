@@ -30,6 +30,27 @@ export const getExpensesInGroup = query({
   },
 });
 
+export const get = query({
+  args: { expenseId: v.id("expenses") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.expenseId);
+  },
+});
+
+export const update = mutation({
+  args: {
+    expenseId: v.id("expenses"),
+    payerId: v.id("users"),
+    amount: v.number(),
+    description: v.string(),
+    splitAmong: v.array(v.id("users")),
+  },
+  handler: async (ctx, args) => {
+    const { expenseId, ...rest } = args;
+    await ctx.db.patch(expenseId, rest);
+  },
+});
+
 export const deleteExpense = mutation({
   args: { expenseId: v.id("expenses") },
   handler: async (ctx, args) => {

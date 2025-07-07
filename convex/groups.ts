@@ -5,20 +5,26 @@ import { v } from "convex/values";
 export const create = mutation({
   args: { groupName: v.string(), userName: v.string(), userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    let currentUserId: string;
     let userRecordId: any;
-    if (!userId) {
-      const newUserId = Math.random().toString(36).substring(2, 15);
-      const newUser = await ctx.db.insert("users", { name: args.userName, userId: newUserId });
-      userId = newUserId;
-      userRecordId = newUser._id;
-    } else {
-      const existingUser = await ctx.db.query("users").withIndex("by_userId", q => q.eq("userId", userId)).unique();
+
+    if (args.userId) {
+      currentUserId = args.userId;
+      const existingUser = await ctx.db.query("users").withIndex("by_userId", q => q.eq("userId", currentUserId)).unique();
       if (existingUser) {
         userRecordId = existingUser._id;
       } else {
-        const newUser = await ctx.db.insert("users", { name: args.userName, userId });
-        userRecordId = newUser._id;
+        const newUserConvexId = await ctx.db.insert("users", { name: args.userName, userId: currentUserId });
+        userRecordId = newUserConvexId;
       }
+    } else {
+      currentUserId = Math.random().toString(36).substring(2, 15);
+      const newUserConvexId = await ctx.db.insert("users", { name: args.userName, userId: currentUserId });
+      userRecordId = newUserConvexId;
+    }
+
+    if (!userRecordId) {
+      throw new Error("Failed to get or create user record ID.");
     }
 
     const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -26,7 +32,7 @@ export const create = mutation({
 
     await ctx.db.insert("members", { userId: userRecordId, groupId });
 
-    return { groupId, inviteCode, userId };
+    return { groupId, inviteCode, userId: currentUserId };
   },
 });
 
@@ -34,6 +40,16 @@ export const getGroup = query({
   args: { groupId: v.id("groups") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.groupId);
+  },
+});
+
+export const getGroupbyInviteCode = query({
+  args: { inviteCode: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("groups")
+      .withIndex("by_inviteCode", (q) => q.eq("inviteCode", args.inviteCode))
+      .unique();
   },
 });
 

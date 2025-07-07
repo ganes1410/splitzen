@@ -34,7 +34,7 @@ function CreateGroup() {
     }
 
     try {
-      let userId = localStorage.getItem("userId");
+      let userId = localStorage.getItem("userId") || undefined;
       const { groupId, userId: newUserId } = await createGroup({ ...result.data, userId });
       if (!userId) {
         localStorage.setItem("userId", newUserId);
