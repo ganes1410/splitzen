@@ -6,12 +6,16 @@ import { Input } from '@/components/ui/input'
 import { useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 
-export const Route = createFileRoute('/')({
+interface IndexLoaderData {
+  userId: string | null;
+}
+
+export const Route = createFileRoute('/')<IndexLoaderData>({
   component: Home,
   staticData: {
     title: 'Splitzen - Welcome',
   },
-  beforeLoad: () => {
+  loader: () => {
     const userId = localStorage.getItem('userId')
     return { userId }
   },
@@ -21,6 +25,7 @@ function Home() {
   const router = useRouter()
   const [inviteCode, setInviteCode] = useState('')
   const { userId } = Route.useLoaderData()
+
 
   const groups = useQuery(api.groups.getGroupsForUser, userId ? { userId } : 'skip')
 
