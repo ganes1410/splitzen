@@ -13,6 +13,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "../components/ui/sidebar";
 import { ThemeToggle } from "../components/theme-toggle";
 
@@ -26,10 +27,14 @@ const RootLayout = () => {
     api.groups.getGroupsForUser,
     userId === null ? "skip" : { userId }
   );
+  const { state } = useSidebar();
 
   return (
-    <div className="flex h-screen">
-      <Sidebar className="w-64 bg-card p-4 flex flex-col" collapsible="icon">
+    <div className="flex min-h-screen">
+      <Sidebar
+        className={`flex flex-col ${state === "collapsed" ? "w-16" : "w-60"}`}
+        collapsible="icon"
+      >
         <SidebarHeader>
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Splitzen</h2>
@@ -44,18 +49,24 @@ const RootLayout = () => {
                 {userId && groups && groups.length > 0 ? (
                   groups.map((group) => (
                     <SidebarMenuItem key={group._id}>
-                      <SidebarMenuButton asChild>
+                      <SidebarMenuButton
+                        asChild
+                        className="hover:bg-rose-50 rounded-md transition-colors"
+                      >
                         <Link
                           to="/group/$groupId"
-                          params={{ groupId: group._id as string }}
+                          params={{ groupId: group._id }}
                         >
-                          <span>{group.name}</span>
+                          {group.name}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))
                 ) : (
-                  <p className="text-muted-foreground">No groups found.</p>
+                  <div className="flex flex-col items-center justify-center text-center text-sm text-muted-foreground p-4 space-y-1">
+                    <span className="text-lg">😕</span>
+                    <span>No groups found.</span>
+                  </div>
                 )}
               </SidebarMenu>
             </SidebarGroupContent>

@@ -30,42 +30,42 @@ function Home() {
   };
 
   return (
-    <div className="flex-grow p-4 flex flex-col justify-center items-center text-center">
-      <div className="container mx-auto max-w-lg">
-        <h1 className="text-4xl font-extrabold text-primary">
-          Welcome to Splitzen!
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          A minimal, fast, and privacy-friendly expense splitting app.
-        </p>
-
-        <div className="flex flex-col items-center space-y-4 mt-8">
-          <Button asChild className="w-full max-w-sm">
-            <Link to="/new">Create a new group</Link>
-          </Button>
-
-          <div className="w-full max-w-sm space-y-2">
-            <form onSubmit={handleJoin} className="space-y-2">
-              <label
-                htmlFor="invite-code"
-                className="block text-sm font-medium text-foreground"
-              >
-                Join a group
-              </label>
-              <Input
-                id="invite-code"
-                name="invite-code"
-                value={inviteCode}
-                onChange={(e) => setInviteCode(e.target.value)}
-                placeholder="Enter invite code"
-                className="w-full"
-              />
-              <Button type="submit" className="w-full" disabled={!inviteCode}>
-                Join
-              </Button>
-            </form>
-          </div>
+    <div className="flex flex-1 justify-start p-4 ">
+      <div className="w-full max-w-md text-center space-y-8">
+        <div>
+          <h1 className="text-4xl font-bold text-primary mb-2">
+            Welcome to Splitzen!
+          </h1>
+          <p className="text-muted-foreground text-base">
+            A minimal, fast, and privacy-friendly expense splitting app.
+          </p>
         </div>
+
+        <Button asChild className="w-full text-base">
+          <Link to="/new">Create a new group</Link>
+        </Button>
+
+        <form
+          onSubmit={handleJoin}
+          className="bg-muted/10 border border-border p-5 rounded-xl shadow-sm space-y-4"
+        >
+          <label
+            htmlFor="invite-code"
+            className="block text-sm font-medium text-left text-foreground"
+          >
+            Join a group
+          </label>
+          <Input
+            id="invite-code"
+            name="invite-code"
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value)}
+            placeholder="Enter invite code"
+          />
+          <Button type="submit" className="w-full" disabled={!inviteCode}>
+            Join
+          </Button>
+        </form>
       </div>
     </div>
   );
