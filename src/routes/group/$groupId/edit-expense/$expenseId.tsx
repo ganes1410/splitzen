@@ -14,7 +14,7 @@ function EditExpense() {
   const { groupId, expenseId } = Route.useParams();
   const router = useRouter();
   const updateExpense = useMutation(api.expenses.update);
-  const expense = useQuery(api.expenses.get, { expenseId });
+  const expense = useQuery(api.expenses.get, { expenseId: expenseId as Id<"expenses"> });
 
   const handleSubmit = async (data: {
     amount: number;
@@ -24,7 +24,7 @@ function EditExpense() {
   }) => {
     try {
       await updateExpense({
-        expenseId,
+        expenseId: expenseId as Id<"expenses">,
         amount: data.amount,
         description: data.description,
         payerId: data.payerId,

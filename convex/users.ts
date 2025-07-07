@@ -27,18 +27,16 @@ export const join = mutation({
     let userRecordId: any;
 
     if (userId) {
-      const existingUser = await ctx.db.query("users").withIndex("by_userId", q => q.eq("userId", userId)).unique();
+      const existingUser = await ctx.db.query("users").withIndex("by_userId", q => q.eq("userId", userId as string)).unique();
       if (existingUser) {
         userRecordId = existingUser._id;
       } else {
-        const newUser = await ctx.db.insert("users", { name: args.name, userId });
-        userRecordId = newUser._id;
+        userRecordId = await ctx.db.insert("users", { name: args.name, userId });
       }
     } else {
       const newUserId = Math.random().toString(36).substring(2, 15);
-      const newUser = await ctx.db.insert("users", { name: args.name, userId: newUserId });
+      userRecordId = await ctx.db.insert("users", { name: args.name, userId: newUserId });
       userId = newUserId;
-      userRecordId = newUser._id;
     }
 
     const existingMembership = await ctx.db.query("members")

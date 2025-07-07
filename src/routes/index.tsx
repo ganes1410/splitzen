@@ -21,8 +21,8 @@ export const Route = createFileRoute("/")<IndexLoaderData>({
 function Home() {
   const router = useRouter();
   const [inviteCode, setInviteCode] = useState("");
-  const { userId } = Route.useLoaderData();
-  console.log("userId from loader:", userId);
+  const { userId } = Route.useLoaderData() as IndexLoaderData;
+  console.log("userId from loader:", userId ?? "undefined");
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();

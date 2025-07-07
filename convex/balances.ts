@@ -10,13 +10,21 @@ export const getBalances = query({
       .filter((q) => q.eq(q.field("groupId"), args.groupId))
       .collect();
 
-    const users = await ctx.db
-      .query("users")
+    const members = await ctx.db
+      .query("members")
       .filter((q) => q.eq(q.field("groupId"), args.groupId))
       .collect();
 
+    const users = (await Promise.all(
+      members.map((member) => ctx.db.get(member.userId))
+    )).filter(Boolean);
+
     const balances: { [key: string]: number } = {};
-    users.forEach((user) => (balances[user._id] = 0));
+    users.forEach((user) => {
+      if (user) {
+        balances[user._id] = 0;
+      }
+    });
 
     expenses.forEach((expense) => {
       balances[expense.payerId] += expense.amount;
