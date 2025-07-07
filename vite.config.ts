@@ -11,9 +11,7 @@ export default defineConfig({
     TanStackRouterVite({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.ts',
-      experimental: {
-        enableCodeSplitting: true,
-      },
+      autoCodeSplitting: true,
     }),
     viteReact(),
     tailwindcss(),
