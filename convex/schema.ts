@@ -9,7 +9,7 @@ export default defineSchema({
   }).index("by_inviteCode", ["inviteCode"]),
   users: defineTable({
     name: v.string(),
-    userId: v.string(),
+    userId: v.optional(v.string()),
   }).index("by_userId", ["userId"]),
   members: defineTable({
     userId: v.id("users"),

@@ -35,6 +35,7 @@ export const join = mutation({
       }
     } else {
       const newUserId = Math.random().toString(36).substring(2, 15);
+      console.log("Inserting new user with:", { name: args.name, userId: newUserId });
       userRecordId = await ctx.db.insert("users", { name: args.name, userId: newUserId });
       userId = newUserId;
     }
