@@ -45,7 +45,7 @@ function Home() {
           <ul className="space-y-2">
             {groups.map((group) => (
               <li key={group._id} className="bg-card p-4 rounded-lg shadow">
-                <Link to={`/group/${group._id}`} className="text-lg font-semibold text-primary-foreground hover:underline">
+                <Link to="/group/$groupId" params={{ groupId: group._id as string }} className="text-lg font-semibold text-primary-foreground hover:underline">
                   {group.name}
                 </Link>
               </li>
