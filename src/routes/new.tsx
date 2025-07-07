@@ -34,8 +34,11 @@ function CreateGroup() {
     }
 
     try {
-      const { groupId, sessionId } = await createGroup(result.data);
-      localStorage.setItem(`sessionId_${groupId}`, sessionId);
+      let userId = localStorage.getItem("userId");
+      const { groupId, userId: newUserId } = await createGroup({ ...result.data, userId });
+      if (!userId) {
+        localStorage.setItem("userId", newUserId);
+      }
       router.navigate({ to: `/group/${groupId}` });
     } catch (error) {
       console.error("Error creating group:", error);

@@ -2,8 +2,17 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+export const create = mutation({
+  args: { name: v.string() },
+  handler: async (ctx, args) => {
+    const userId = Math.random().toString(36).substring(2, 15);
+    const _id = await ctx.db.insert("users", { name: args.name, userId });
+    return { userId, _id };
+  },
+});
+
 export const join = mutation({
-  args: { name: v.string(), inviteCode: v.string() },
+  args: { name: v.string(), inviteCode: v.string(), userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const group = await ctx.db
       .query("groups")
@@ -14,23 +23,36 @@ export const join = mutation({
       throw new Error("Group not found");
     }
 
-    const sessionId = Math.random().toString(36).substring(2, 15);
-    const userId = await ctx.db.insert("users", {
-      name: args.name,
-      groupId: group._id,
-      sessionId,
-    });
+    let userId = args.userId;
+    let userRecordId: any;
 
-    return { userId, sessionId, groupId: group._id };
+    if (userId) {
+      const existingUser = await ctx.db.query("users").withIndex("by_userId", q => q.eq("userId", userId)).unique();
+      if (existingUser) {
+        userRecordId = existingUser._id;
+      } else {
+        const newUser = await ctx.db.insert("users", { name: args.name, userId });
+        userRecordId = newUser._id;
+      }
+    } else {
+      const newUserId = Math.random().toString(36).substring(2, 15);
+      const newUser = await ctx.db.insert("users", { name: args.name, userId: newUserId });
+      userId = newUserId;
+      userRecordId = newUser._id;
+    }
+
+    await ctx.db.insert("members", { userId: userRecordId, groupId: group._id });
+
+    return { userId, groupId: group._id };
   },
 });
 
 export const getUsersInGroup = query({
   args: { groupId: v.id("groups") },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("groupId"), args.groupId))
-      .collect();
+    const members = await ctx.db.query("members").filter(q => q.eq(q.field("groupId"), args.groupId)).collect();
+    const userIds = members.map(m => m.userId);
+    const users = await Promise.all(userIds.map(userId => ctx.db.get(userId)));
+    return users.filter(u => u !== null);
   },
 });

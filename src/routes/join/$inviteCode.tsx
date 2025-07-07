@@ -33,11 +33,15 @@ function JoinGroup() {
     }
 
     try {
-      const { sessionId, groupId } = await joinGroup({
+      let userId = localStorage.getItem("userId");
+      const { groupId, userId: newUserId } = await joinGroup({
         name: result.data.name,
         inviteCode,
+        userId,
       });
-      localStorage.setItem(`sessionId_${groupId}`, sessionId);
+      if (!userId) {
+        localStorage.setItem("userId", newUserId);
+      }
       router.navigate({ to: `/group/${groupId}` });
     } catch (error) {
       console.error("Error joining group:", error);

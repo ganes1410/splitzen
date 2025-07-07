@@ -3,17 +3,30 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const create = mutation({
-  args: { groupName: v.string(), userName: v.string() },
+  args: { groupName: v.string(), userName: v.string(), userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    let userRecordId: any;
+    if (!userId) {
+      const newUserId = Math.random().toString(36).substring(2, 15);
+      const newUser = await ctx.db.insert("users", { name: args.userName, userId: newUserId });
+      userId = newUserId;
+      userRecordId = newUser._id;
+    } else {
+      const existingUser = await ctx.db.query("users").withIndex("by_userId", q => q.eq("userId", userId)).unique();
+      if (existingUser) {
+        userRecordId = existingUser._id;
+      } else {
+        const newUser = await ctx.db.insert("users", { name: args.userName, userId });
+        userRecordId = newUser._id;
+      }
+    }
+
     const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     const groupId = await ctx.db.insert("groups", { name: args.groupName, inviteCode });
-    const sessionId = Math.random().toString(36).substring(2, 15);
-    await ctx.db.insert("users", {
-      name: args.userName,
-      groupId,
-      sessionId,
-    });
-    return { groupId, inviteCode, sessionId };
+
+    await ctx.db.insert("members", { userId: userRecordId, groupId });
+
+    return { groupId, inviteCode, userId };
   },
 });
 
@@ -24,16 +37,27 @@ export const getGroup = query({
   },
 });
 
+export const getGroupsForUser = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.query("users").withIndex("by_userId", q => q.eq("userId", args.userId)).unique();
+    if (!user) {
+      return [];
+    }
+    const memberships = await ctx.db.query("members").filter(q => q.eq(q.field("userId"), user._id)).collect();
+    const groupIds = memberships.map(m => m.groupId);
+    const groups = await Promise.all(groupIds.map(groupId => ctx.db.get(groupId)));
+    return groups.filter(g => g !== null);
+  },
+});
+
 export const deleteGroup = mutation({
   args: { groupId: v.id("groups") },
   handler: async (ctx, args) => {
-    // Delete associated users
-    const users = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("groupId"), args.groupId))
-      .collect();
-    for (const user of users) {
-      await ctx.db.delete(user._id);
+    // Delete associated members
+    const members = await ctx.db.query("members").filter(q => q.eq(q.field("groupId"), args.groupId)).collect();
+    for (const member of members) {
+      await ctx.db.delete(member._id);
     }
 
     // Delete associated expenses
