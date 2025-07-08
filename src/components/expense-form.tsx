@@ -16,7 +16,7 @@ interface ExpenseFormProps {
     description: string;
     payerId: Id<"users">;
     splitAmong: Id<"users">[];
-    currency: string;
+    currency?: string;
   };
   onSubmit: (data: {
     expenseId?: Id<"expenses">;
@@ -66,7 +66,7 @@ export function ExpenseForm({
       setDescription(initialData.description);
       setPayerId(initialData.payerId);
       setSplitAmong(initialData.splitAmong);
-      setCurrency(initialData.currency);
+      setCurrency(initialData.currency || "USD");
     }
   }, [initialData]);
 
