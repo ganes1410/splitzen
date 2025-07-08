@@ -29,7 +29,7 @@ const RootLayout = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar className="flex flex-col w-60">
+      <Sidebar className="flex flex-col w-60 mr-2.5">
         <SidebarHeader>
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
