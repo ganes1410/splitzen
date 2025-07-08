@@ -29,7 +29,7 @@ const RootLayout = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar className="flex flex-col w-60 mr-2.5">
+      <Sidebar className="flex flex-col w-60">
         <SidebarHeader>
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
@@ -75,7 +75,7 @@ const RootLayout = () => {
       </Sidebar>
 
       <div
-        className={`flex-grow  p-4 transition-all duration-300 flex align-subject-center justify-center `}
+        className={`flex-grow ml-[calc(15rem+10px)] p-4 transition-all duration-300 flex align-subject-center justify-center `}
       >
         <Outlet />
       </div>
