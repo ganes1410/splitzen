@@ -51,8 +51,6 @@ function JoinGroup() {
       return;
     }
 
-    if (!userId) return;
-
     try {
       const { groupId, userId: newUserId } = await joinGroup({
         name: result.data.name,
@@ -98,7 +96,7 @@ function JoinGroup() {
     );
   }
 
-  if (userMembership === undefined) {
+  if (userMembership === undefined && userId) {
     return <div>Loading membership details...</div>;
   }
 

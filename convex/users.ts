@@ -12,7 +12,7 @@ export const create = mutation({
 });
 
 export const join = mutation({
-  args: { name: v.string(), inviteCode: v.string(), userId: v.optional(v.string()) },
+  args: { name: v.string(), inviteCode: v.string(), userId: v.union(v.string(), v.null()) },
   handler: async (ctx, args) => {
     const group = await ctx.db
       .query("groups")
@@ -23,7 +23,7 @@ export const join = mutation({
       throw new Error("Group not found");
     }
 
-    let userId = args.userId;
+    let userId: string | null = args.userId;
     let userRecordId: any;
 
     if (userId) {
@@ -35,7 +35,6 @@ export const join = mutation({
       }
     } else {
       const newUserId = Math.random().toString(36).substring(2, 15);
-      console.log("Inserting new user with:", { name: args.name, userId: newUserId });
       userRecordId = await ctx.db.insert("users", { name: args.name, userId: newUserId });
       userId = newUserId;
     }
