@@ -1,4 +1,4 @@
-import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { Outlet, createRootRoute, Link } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import {
   Sidebar,
@@ -6,20 +6,19 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarProvider,
-  SidebarTrigger,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "../components/ui/sidebar";
 import { ThemeToggle } from "../components/theme-toggle";
 
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { Link } from "@tanstack/react-router";
+
+import { HomeIcon } from "lucide-react";
 
 const RootLayout = () => {
   const userId = localStorage.getItem("userId");
@@ -27,24 +26,17 @@ const RootLayout = () => {
     api.groups.getGroupsForUser,
     userId === null ? "skip" : { userId }
   );
-  const { state } = useSidebar();
-  const isSidebarCollapsed = state === "collapsed";
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar
-        className={`flex flex-col ${isSidebarCollapsed ? "w-24" : "w-60"}`}
-        collapsible="icon"
-      >
+      <Sidebar className="flex flex-col w-60">
         <SidebarHeader>
-          {isSidebarCollapsed ? (
-            <SidebarTrigger />
-          ) : (
-            <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2">
+              <HomeIcon className="h-6 w-6" />
               <h2 className="text-2xl font-bold">Splitzen</h2>
-              <SidebarTrigger />
-            </div>
-          )}
+            </Link>
+          </div>
         </SidebarHeader>
         <SidebarContent className="flex-grow overflow-y-auto">
           <SidebarGroup>

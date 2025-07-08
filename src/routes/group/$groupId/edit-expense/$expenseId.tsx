@@ -21,6 +21,7 @@ function EditExpense() {
     description: string;
     payerId: Id<"users">;
     splitAmong: Id<"users">[];
+    currency: string;
   }) => {
     try {
       await updateExpense({
@@ -29,6 +30,7 @@ function EditExpense() {
         description: data.description,
         payerId: data.payerId,
         splitAmong: data.splitAmong,
+        currency: data.currency,
       });
       router.navigate({ to: `/group/${groupId}` });
     } catch (error) {
