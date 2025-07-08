@@ -1,4 +1,5 @@
 export const currencies = [
+  { code: "INR", name: "Indian Rupee" },
   { code: "USD", name: "United States Dollar" },
   { code: "EUR", name: "Euro" },
   { code: "JPY", name: "Japanese Yen" },
@@ -16,7 +17,6 @@ export const currencies = [
   { code: "KRW", name: "South Korean Won" },
   { code: "TRY", name: "Turkish Lira" },
   { code: "RUB", name: "Russian Ruble" },
-  { code: "INR", name: "Indian Rupee" },
   { code: "BRL", name: "Brazilian Real" },
   { code: "ZAR", name: "South African Rand" },
 ];

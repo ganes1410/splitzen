@@ -57,6 +57,7 @@ function EditExpense() {
         initialData={expense}
         onSubmit={handleSubmit}
         submitButtonText="Update Expense"
+        onCancel={() => router.history.back()}
       />
     </div>
   );

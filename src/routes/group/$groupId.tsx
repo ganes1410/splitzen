@@ -196,7 +196,7 @@ function GroupPage() {
                     {getUserName(balance.to)}
                   </span>{" "}
                   <span className="font-semibold">
-                    {balance.amount.toFixed(2)}
+                    {balance.amount.toFixed(2)} {balance.currency}
                   </span>
                 </p>
               </li>

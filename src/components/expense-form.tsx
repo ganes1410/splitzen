@@ -27,6 +27,7 @@ interface ExpenseFormProps {
     currency: string;
   }) => void;
   submitButtonText: string;
+  onCancel?: () => void;
 }
 
 const expenseSchema = z.object({
@@ -44,6 +45,7 @@ export function ExpenseForm({
   initialData,
   onSubmit,
   submitButtonText,
+  onCancel,
 }: ExpenseFormProps) {
   const [amount, setAmount] = useState(initialData?.amount.toString() || "");
   const [description, setDescription] = useState(
@@ -152,19 +154,22 @@ export function ExpenseForm({
         >
           Currency
         </label>
-        <select
+        <Input
           id="currency"
           name="currency"
+          list="currency-list"
           value={currency}
           onChange={(e) => setCurrency(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+          placeholder="Select Currency"
+          className="w-full"
+        />
+        <datalist id="currency-list">
           {currencies.map((c) => (
             <option key={c.code} value={c.code}>
-              {c.name} ({c.code})
+              {c.name}
             </option>
           ))}
-        </select>
+        </datalist>
         {errors?.find((e) => e.path[0] === "currency") && (
           <p className="text-destructive text-sm mt-1">
             {errors.find((e) => e.path[0] === "currency")?.message}
@@ -261,9 +266,16 @@ export function ExpenseForm({
           <p className="text-destructive text-sm mt-1">{errors[0].message}</p>
         )}
 
-      <Button type="submit" disabled={!isFormValid} className="w-full">
-        {submitButtonText}
-      </Button>
+      <div className="flex gap-2">
+        <Button type="submit" disabled={!isFormValid} className="w-full">
+          {submitButtonText}
+        </Button>
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel} className="w-full">
+            Cancel
+          </Button>
+        )}
+      </div>
     </form>
   );
 }
