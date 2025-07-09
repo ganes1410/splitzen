@@ -31,5 +31,10 @@ export default defineSchema({
     to: v.id("users"),
     amount: v.number(),
     note: v.optional(v.string()),
-  }),
+  }).index("by_groupId", ["groupId"]),
+  balances: defineTable({
+    userId: v.id("users"),
+    groupId: v.id("groups"),
+    balance: v.number(),
+  }).index("by_user_group", ["userId", "groupId"]),
 });

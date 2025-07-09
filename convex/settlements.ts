@@ -15,7 +15,52 @@ export const create = mutation({
     if (!group) {
       throw new Error("Group not found");
     }
-    const settlementId = await ctx.db.insert("settlements", args);
-    return { settlementId };
+
+    await ctx.db.insert("settlements", {
+      groupId: args.groupId,
+      from: args.from,
+      to: args.to,
+      amount: args.amount,
+      note: args.note,
+    });
+
+    // Update balances
+    const fromBalance = await ctx.db
+      .query("balances")
+      .withIndex("by_user_group", (q) =>
+        q.eq("userId", args.from).eq("groupId", args.groupId)
+      )
+      .first();
+
+    if (fromBalance) {
+      await ctx.db.patch(fromBalance._id, {
+        balance: fromBalance.balance + args.amount,
+      });
+    } else {
+      await ctx.db.insert("balances", {
+        userId: args.from,
+        groupId: args.groupId,
+        balance: args.amount,
+      });
+    }
+
+    const toBalance = await ctx.db
+      .query("balances")
+      .withIndex("by_user_group", (q) =>
+        q.eq("userId", args.to).eq("groupId", args.groupId)
+      )
+      .first();
+
+    if (toBalance) {
+      await ctx.db.patch(toBalance._id, {
+        balance: toBalance.balance - args.amount,
+      });
+    } else {
+      await ctx.db.insert("balances", {
+        userId: args.to,
+        groupId: args.groupId,
+        balance: -args.amount,
+      });
+    }
   },
 });

@@ -10,6 +10,11 @@ export const getBalances = query({
       .filter((q) => q.eq(q.field("groupId"), args.groupId))
       .collect();
 
+    const settlements = await ctx.db
+      .query("settlements")
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
+      .collect();
+
     const members = await ctx.db
       .query("members")
       .filter((q) => q.eq(q.field("groupId"), args.groupId))
@@ -35,6 +40,16 @@ export const getBalances = query({
       expense.splitAmong.forEach((userId) => {
         balances[expense.currency as string][userId] -= splitAmount;
       });
+    });
+
+    settlements.forEach((settlement) => {
+      // Assuming all settlements are in the group's default currency for simplicity
+      // You might need to handle multi-currency settlements differently
+      const currency = Object.keys(balances)[0]; // Or determine currency from group settings
+      if (currency) {
+        balances[currency][settlement.from] += settlement.amount;
+        balances[currency][settlement.to] -= settlement.amount;
+      }
     });
 
     const allTransactions: { from: string; to: string; amount: number; currency: string }[] = [];
