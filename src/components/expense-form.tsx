@@ -6,6 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { MultiSelect } from "@/components/ui/multi-select";
+import { useRouter } from "@tanstack/react-router";
 
 interface ExpenseFormProps {
   groupId: Id<"groups">;
@@ -24,7 +25,6 @@ interface ExpenseFormProps {
     splitAmong: Id<"users">[];
   }) => void;
   submitButtonText: string;
-  onCancel?: () => void;
 }
 
 const expenseSchema = z.object({
@@ -41,7 +41,6 @@ export function ExpenseForm({
   initialData,
   onSubmit,
   submitButtonText,
-  onCancel,
 }: ExpenseFormProps) {
   const [amount, setAmount] = useState(initialData?.amount.toString() || "");
   const [description, setDescription] = useState(
@@ -54,6 +53,7 @@ export function ExpenseForm({
     initialData?.splitAmong || []
   );
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
+  const router = useRouter();
 
   const users = useQuery(api.users.getUsersInGroup, { groupId });
 
@@ -209,17 +209,20 @@ export function ExpenseForm({
           <p className="text-destructive text-sm mt-1">{errors[0].message}</p>
         )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-col">
         <Button type="submit" disabled={!isFormValid} className="w-full">
           {submitButtonText}
         </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} className="w-full">
-            Cancel
-          </Button>
-        )}
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.history.back()}
+          className="w-full"
+        >
+          Cancel
+        </Button>
       </div>
     </form>
   );
 }
-

@@ -43,7 +43,6 @@ function NewExpense() {
         groupId={groupId as Id<"groups">}
         onSubmit={handleSubmit}
         submitButtonText="Add Expense"
-        onCancel={() => router.history.back()}
       />
     </div>
   );
