@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
@@ -60,16 +60,6 @@ export function ExpenseForm({
 
   const router = useRouter();
   const users = useQuery(api.users.getUsersInGroup, { groupId });
-
-  useEffect(() => {
-    if (initialData) {
-      setAmount(initialData.amount.toString());
-      setDescription(initialData.description);
-      setPayerId(initialData.payerId);
-      setSplitAmong(initialData.splitAmong);
-      setDate(initialData.date || new Date().toISOString().split('T')[0]);
-    }
-  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
