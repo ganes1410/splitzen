@@ -9,6 +9,7 @@ export const create = mutation({
     amount: v.number(),
     description: v.string(),
     splitAmong: v.array(v.id("users")),
+    date: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const group = await ctx.db.get(args.groupId);
@@ -44,6 +45,7 @@ export const update = mutation({
     amount: v.number(),
     description: v.string(),
     splitAmong: v.array(v.id("users")),
+    date: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { expenseId, ...rest } = args;

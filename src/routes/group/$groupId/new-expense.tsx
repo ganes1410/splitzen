@@ -21,6 +21,7 @@ function NewExpense() {
     description: string;
     payerId: Id<"users">;
     splitAmong: Id<"users">[];
+    date?: string;
   }) => {
     try {
       await createExpense({

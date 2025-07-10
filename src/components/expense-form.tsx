@@ -16,6 +16,7 @@ interface ExpenseFormProps {
     description: string;
     payerId: Id<"users">;
     splitAmong: Id<"users">[];
+    date?: string;
   };
   onSubmit: (data: {
     expenseId?: Id<"expenses">;
@@ -23,6 +24,7 @@ interface ExpenseFormProps {
     description: string;
     payerId: Id<"users">;
     splitAmong: Id<"users">[];
+    date?: string;
   }) => void;
   submitButtonText: string;
 }
@@ -34,6 +36,7 @@ const expenseSchema = z.object({
   splitAmong: z
     .array(z.string())
     .min(1, "Please select at least one person to split with"),
+  date: z.string().optional(),
 });
 
 export function ExpenseForm({
@@ -52,9 +55,10 @@ export function ExpenseForm({
   const [splitAmong, setSplitAmong] = useState<string[]>(
     initialData?.splitAmong || []
   );
+  const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
-  const router = useRouter();
 
+  const router = useRouter();
   const users = useQuery(api.users.getUsersInGroup, { groupId });
 
   useEffect(() => {
@@ -63,6 +67,7 @@ export function ExpenseForm({
       setDescription(initialData.description);
       setPayerId(initialData.payerId);
       setSplitAmong(initialData.splitAmong);
+      setDate(initialData.date || new Date().toISOString().split('T')[0]);
     }
   }, [initialData]);
 
@@ -75,6 +80,7 @@ export function ExpenseForm({
       description,
       payerId,
       splitAmong,
+      date,
     });
 
     if (!result.success) {
@@ -88,6 +94,7 @@ export function ExpenseForm({
       description: result.data.description,
       payerId: result.data.payerId as Id<"users">,
       splitAmong: result.data.splitAmong as Id<"users">[],
+      date: result.data.date,
     });
   };
 
@@ -124,9 +131,9 @@ export function ExpenseForm({
           placeholder="e.g., 25.50"
           className="w-full"
         />
-        {errors?.find((e) => e.path[0] === "amount") && (
+        {errors?.find((e: z.ZodIssue) => e.path[0] === "amount") && (
           <p className="text-destructive text-sm mt-1">
-            {errors.find((e) => e.path[0] === "amount")?.message}
+            {errors.find((e: z.ZodIssue) => e.path[0] === "amount")?.message}
           </p>
         )}
       </div>
@@ -146,9 +153,31 @@ export function ExpenseForm({
           placeholder="e.g., Dinner at Italian restaurant"
           className="w-full"
         />
-        {errors?.find((e) => e.path[0] === "description") && (
+        {errors?.find((e: z.ZodIssue) => e.path[0] === "description") && (
           <p className="text-destructive text-sm mt-1">
-            {errors.find((e) => e.path[0] === "description")?.message}
+            {errors.find((e: z.ZodIssue) => e.path[0] === "description")?.message}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label
+          htmlFor="date"
+          className="block text-sm font-medium text-foreground mb-1"
+        >
+          Date
+        </label>
+        <Input
+          id="date"
+          name="date"
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="w-full"
+        />
+        {errors?.find((e: z.ZodIssue) => e.path[0] === "date") && (
+          <p className="text-destructive text-sm mt-1">
+            {errors.find((e: z.ZodIssue) => e.path[0] === "date")?.message}
           </p>
         )}
       </div>
@@ -174,9 +203,9 @@ export function ExpenseForm({
             </option>
           ))}
         </select>
-        {errors?.find((e) => e.path[0] === "payerId") && (
+        {errors?.find((e: z.ZodIssue) => e.path[0] === "payerId") && (
           <p className="text-destructive text-sm mt-1">
-            {errors.find((e) => e.path[0] === "payerId")?.message}
+            {errors.find((e: z.ZodIssue) => e.path[0] === "payerId")?.message}
           </p>
         )}
       </div>
@@ -193,15 +222,15 @@ export function ExpenseForm({
           selected={splitAmong}
           onChange={setSplitAmong}
         />
-        {errors?.find((e) => e.path[0] === "splitAmong") && (
+        {errors?.find((e: z.ZodIssue) => e.path[0] === "splitAmong") && (
           <p className="text-destructive text-sm mt-1">
-            {errors.find((e) => e.path[0] === "splitAmong")?.message}
+            {errors.find((e: z.ZodIssue) => e.path[0] === "splitAmong")?.message}
           </p>
         )}
       </div>
 
       {errors &&
-        !errors.some((e) =>
+        !errors.some((e: z.ZodIssue) =>
           ["amount", "description", "payerId", "splitAmong"].includes(
             e.path[0] as string
           )

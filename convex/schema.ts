@@ -24,6 +24,7 @@ export default defineSchema({
     amount: v.number(),
     description: v.string(),
     splitAmong: v.array(v.id("users")),
+    date: v.optional(v.string()),
   }),
   settlements: defineTable({
     groupId: v.id("groups"),
