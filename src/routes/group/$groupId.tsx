@@ -18,6 +18,7 @@ import { GroupSettingsForm } from "@/components/group-settings-form";
 import { ExpenseForm } from "@/components/expense-form";
 import { SettleForm } from "@/components/settle-form";
 import { Settings, ChevronDown, ChevronRight } from "lucide-react";
+import { getCurrencySymbol } from "@/lib/currencies";
 
 export const Route = createFileRoute("/group/$groupId")({
   component: GroupPage,
@@ -241,7 +242,8 @@ function GroupPage() {
                     </Button>
                     <div>
                       <p className="text-lg font-semibold text-foreground">
-                        {getUserName(expense.payerId)} paid {group?.currency}{" "}
+                        {getUserName(expense.payerId)} paid{" "}
+                        {getCurrencySymbol(group?.currency)}
                         {expense.amount} for {expense.description}
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -289,7 +291,8 @@ function GroupPage() {
                           >
                             <span>{user?.name || "Unknown"}</span>
                             <span>
-                              {share.toFixed(2)} {group?.currency}
+                              {getCurrencySymbol(group?.currency)}
+                              {share.toFixed(2)}
                             </span>
                           </li>
                         );

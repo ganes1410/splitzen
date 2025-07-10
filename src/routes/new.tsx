@@ -28,7 +28,7 @@ function CreateGroup() {
   const router = useRouter();
   const [groupName, setGroupName] = useState("");
   const [userName, setUserName] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("INR");
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
