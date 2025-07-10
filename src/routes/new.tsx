@@ -17,6 +17,11 @@ const createGroupSchema = z.object({
   currency: z.string().min(1, "Please select a currency"),
 });
 
+const createGroupWithUserSchema = z.object({
+  groupName: z.string().min(3, "Group name must be at least 3 characters"),
+  currency: z.string().min(1, "Please select a currency"),
+});
+
 function CreateGroup() {
   const createGroup = useMutation(api.groups.create);
   const router = useRouter();
@@ -28,8 +33,15 @@ function CreateGroup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors(null);
+    const isUserPresent = Boolean(localStorage.getItem("userId"));
 
-    const result = createGroupSchema.safeParse({ groupName, userName, currency });
+    const result = isUserPresent
+      ? createGroupWithUserSchema.safeParse({ groupName, currency })
+      : createGroupSchema.safeParse({
+          groupName,
+          userName,
+          currency,
+        });
 
     if (!result.success) {
       setErrors(result.error.issues);
@@ -38,7 +50,13 @@ function CreateGroup() {
 
     try {
       let userId = localStorage.getItem("userId") || undefined;
-      const { groupId, userId: newUserId } = await createGroup({ ...result.data, userId });
+      const { groupId, userId: newUserId } = await createGroup({
+        ...result.data,
+        userId,
+        userName: isUserPresent
+          ? (localStorage.getItem("userId") ?? "")
+          : userName,
+      });
       if (!userId) {
         localStorage.setItem("userId", newUserId);
       }
@@ -81,27 +99,29 @@ function CreateGroup() {
             </p>
           )}
         </div>
-        <div>
-          <label
-            htmlFor="user-name"
-            className="block text-sm font-medium text-foreground mb-1"
-          >
-            Your Name
-          </label>
-          <Input
-            id="user-name"
-            name="user-name"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            placeholder="e.g., Alice"
-            className="w-full"
-          />
-          {errors?.find((e) => e.path[0] === "userName") && (
-            <p className="text-destructive text-sm mt-1">
-              {errors.find((e) => e.path[0] === "userName")?.message}
-            </p>
-          )}
-        </div>
+        {!localStorage.getItem("userId") ? (
+          <div>
+            <label
+              htmlFor="user-name"
+              className="block text-sm font-medium text-foreground mb-1"
+            >
+              Your Name
+            </label>
+            <Input
+              id="user-name"
+              name="user-name"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="e.g., Alice"
+              className="w-full"
+            />
+            {errors?.find((e) => e.path[0] === "userName") && (
+              <p className="text-destructive text-sm mt-1">
+                {errors.find((e) => e.path[0] === "userName")?.message}
+              </p>
+            )}
+          </div>
+        ) : null}
         <div>
           <label
             htmlFor="currency"
