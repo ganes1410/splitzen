@@ -71,7 +71,11 @@ const RootLayout = () => {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {userId && groups && groups.length > 0 ? (
+                  {userId && groups === undefined ? (
+                    <div className="flex flex-col items-center justify-center text-center px-4 py-8 space-y-3">
+                      <p className="text-sm font-medium text-muted-foreground">Loading groups...</p>
+                    </div>
+                  ) : userId && groups && groups.length > 0 ? (
                     groups.map((group) => (
                       <SidebarMenuItem key={group._id}>
                         <SidebarMenuButton asChild>
