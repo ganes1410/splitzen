@@ -46,7 +46,7 @@ function GroupPage() {
   const deleteGroup = useMutation(api.groups.deleteGroup);
   const deleteExpense = useMutation(api.expenses.deleteExpense);
   const updateGroup = useMutation(api.groups.update);
-  const updateUsers = useMutation(api.groups.updateUsers);
+  const updateGroupMembers = useMutation(api.groups.updateGroupMembers);
 
   const [showSettleForm, setShowSettleForm] = useState(false);
   const [settleFrom, setSettleFrom] = useState("");
@@ -133,10 +133,11 @@ function GroupPage() {
               {group && users && (
                 <GroupSettingsForm
                   group={group}
-                  participants={users}
+                  allParticipants={users}
+                  initialSelectedParticipants={users.map(u => u._id)}
                   onSubmit={async (data) => {
                     await updateGroup({ groupId: group._id, name: data.name, currency: data.currency });
-                    await updateUsers({ users: data.participants });
+                    await updateGroupMembers({ groupId: group._id, selectedParticipantIds: data.selectedParticipantIds });
                     setShowSettings(false);
                   }}
                   onCancel={() => setShowSettings(false)}

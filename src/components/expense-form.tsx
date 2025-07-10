@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 interface ExpenseFormProps {
   groupId: Id<"groups">;
@@ -49,7 +50,7 @@ export function ExpenseForm({
   const [payerId, setPayerId] = useState<Id<"users"> | "">(
     initialData?.payerId || ""
   );
-  const [splitAmong, setSplitAmong] = useState<Id<"users">[]>(
+  const [splitAmong, setSplitAmong] = useState<string[]>(
     initialData?.splitAmong || []
   );
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
@@ -64,14 +65,6 @@ export function ExpenseForm({
       setSplitAmong(initialData.splitAmong);
     }
   }, [initialData]);
-
-  const handleSplitAmongChange = (userId: Id<"users">) => {
-    setSplitAmong((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    );
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,25 +185,14 @@ export function ExpenseForm({
         <label className="block text-sm font-medium text-foreground mb-1">
           Split Among
         </label>
-        <div className="flex flex-wrap gap-3 p-2 border rounded-md bg-input/20">
-          {users?.map((user) => (
-            <div key={user._id} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id={`split-${user._id}`}
-                checked={splitAmong.includes(user._id)}
-                onChange={() => handleSplitAmongChange(user._id)}
-                className="form-checkbox h-4 w-4 text-primary rounded focus:ring-primary"
-              />
-              <label
-                htmlFor={`split-${user._id}`}
-                className="text-foreground text-sm"
-              >
-                {user.name}
-              </label>
-            </div>
-          ))}
-        </div>
+        <MultiSelect
+          options={users.map((user) => ({
+            value: user._id,
+            label: user.name,
+          }))}
+          selected={splitAmong}
+          onChange={setSplitAmong}
+        />
         {errors?.find((e) => e.path[0] === "splitAmong") && (
           <p className="text-destructive text-sm mt-1">
             {errors.find((e) => e.path[0] === "splitAmong")?.message}

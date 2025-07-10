@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import type { Id } from "../../convex/_generated/dataModel";
 import { currencies } from "@/lib/currencies";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 interface GroupSettingsFormProps {
   group: {
@@ -11,14 +12,15 @@ interface GroupSettingsFormProps {
     name: string;
     currency?: string;
   };
-  participants: {
+  allParticipants: {
     _id: Id<"users">;
     name: string;
   }[];
+  initialSelectedParticipants: Id<"users">[];
   onSubmit: (data: {
     name: string;
     currency: string;
-    participants: { _id: Id<"users">; name: string }[];
+    selectedParticipantIds: Id<"users">[];
   }) => void;
   onCancel: () => void;
 }
@@ -30,20 +32,17 @@ const groupSettingsSchema = z.object({
 
 export function GroupSettingsForm({
   group,
-  participants,
+  allParticipants,
+  initialSelectedParticipants,
   onSubmit,
   onCancel,
 }: GroupSettingsFormProps) {
   const [name, setName] = useState(group.name);
   const [currency, setCurrency] = useState(group.currency || "USD");
-  const [editedParticipants, setEditedParticipants] = useState(participants);
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>(
+    initialSelectedParticipants
+  );
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
-
-  const handleParticipantNameChange = (userId: Id<"users">, newName: string) => {
-    setEditedParticipants((prev) =>
-      prev.map((p) => (p._id === userId ? { ...p, name: newName } : p))
-    );
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +58,7 @@ export function GroupSettingsForm({
     onSubmit({
       name: result.data.name,
       currency: result.data.currency,
-      participants: editedParticipants,
+      selectedParticipantIds: selectedParticipantIds as Id<"users">[],
     });
   };
 
@@ -105,17 +104,14 @@ export function GroupSettingsForm({
       </div>
       <div>
         <h3 className="text-lg font-medium text-foreground mb-2">Participants</h3>
-        <ul className="space-y-2">
-          {editedParticipants.map((participant) => (
-            <li key={participant._id} className="flex items-center gap-2">
-              <Input
-                value={participant.name}
-                onChange={(e) => handleParticipantNameChange(participant._id, e.target.value)}
-                className="flex-grow"
-              />
-            </li>
-          ))}
-        </ul>
+        <MultiSelect
+          options={allParticipants.map((p) => ({
+            value: p._id,
+            label: p.name,
+          }))}
+          selected={selectedParticipantIds}
+          onChange={setSelectedParticipantIds}
+        />
       </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>

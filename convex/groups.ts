@@ -122,3 +122,33 @@ export const updateUsers = mutation({
     }
   },
 });
+
+export const updateGroupMembers = mutation({
+  args: {
+    groupId: v.id("groups"),
+    selectedParticipantIds: v.array(v.id("users")),
+  },
+  handler: async (ctx, args) => {
+    const existingMembers = await ctx.db
+      .query("members")
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
+      .collect();
+
+    const existingMemberIds = new Set(existingMembers.map((m) => m.userId));
+    const newParticipantIds = new Set(args.selectedParticipantIds);
+
+    // Add new members
+    for (const participantId of newParticipantIds) {
+      if (!existingMemberIds.has(participantId)) {
+        await ctx.db.insert("members", { userId: participantId, groupId: args.groupId });
+      }
+    }
+
+    // Remove unselected members
+    for (const existingMember of existingMembers) {
+      if (!newParticipantIds.has(existingMember.userId)) {
+        await ctx.db.delete(existingMember._id);
+      }
+    }
+  },
+});
