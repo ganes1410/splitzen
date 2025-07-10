@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { Id } from "../../convex/_generated/dataModel";
 import { currencies } from "@/lib/currencies";
 import { MultiSelect } from "@/components/ui/multi-select";
+import { Combobox } from "@/components/ui/combobox";
 
 interface GroupSettingsFormProps {
   group: {
@@ -83,20 +84,15 @@ export function GroupSettingsForm({
         <label htmlFor="currency" className="block text-sm font-medium text-foreground mb-1">
           Currency
         </label>
-        <Input
-            id="currency"
-            list="currency-list"
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            placeholder="e.g., USD"
-          />
-          <datalist id="currency-list">
-            {currencies.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.code} ({c.symbol})
-              </option>
-            ))}
-          </datalist>
+        <Combobox
+          options={currencies.map((c) => ({
+            value: c.code,
+            label: `${c.code} (${c.symbol})`,
+          }))}
+          value={currency}
+          onChange={setCurrency}
+          placeholder="Select Currency"
+        />
         {errors?.find((e) => e.path[0] === "currency") && (
           <p className="text-destructive text-sm mt-1">
             {errors.find((e) => e.path[0] === "currency")?.message}

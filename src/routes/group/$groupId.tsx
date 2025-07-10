@@ -241,8 +241,8 @@ function GroupPage() {
                     </Button>
                     <div>
                       <p className="text-lg font-semibold text-foreground">
-                        {getUserName(expense.payerId)} paid {expense.amount} for{" "}
-                        {expense.description}
+                        {getUserName(expense.payerId)} paid {group?.currency}{" "}
+                        {expense.amount} for {expense.description}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(expense.date || "").toLocaleDateString()}
