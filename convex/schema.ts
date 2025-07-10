@@ -6,7 +6,7 @@ export default defineSchema({
   groups: defineTable({
     name: v.string(),
     inviteCode: v.string(),
-    currency: v.string(),
+    currency: v.optional(v.string()),
   }).index("by_inviteCode", ["inviteCode"]),
   users: defineTable({
     name: v.string(),
