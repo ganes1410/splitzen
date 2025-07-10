@@ -98,3 +98,27 @@ export const deleteGroup = mutation({
     await ctx.db.delete(args.groupId);
   },
 });
+
+export const update = mutation({
+  args: {
+    groupId: v.id("groups"),
+    name: v.string(),
+    currency: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { groupId, ...rest } = args;
+    await ctx.db.patch(groupId, rest);
+  },
+});
+
+export const updateUsers = mutation({
+  args: {
+    users: v.array(v.object({ _id: v.id("users"), name: v.string() })),
+  },
+  handler: async (ctx, args) => {
+    for (const user of args.users) {
+      const { _id, ...rest } = user;
+      await ctx.db.patch(_id, rest);
+    }
+  },
+});

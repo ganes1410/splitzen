@@ -6,6 +6,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { GroupSettingsForm } from "@/components/group-settings-form";
+import { Settings } from "lucide-react";
 
 export const Route = createFileRoute('/group/$groupId')({
   component: GroupPage,
@@ -42,6 +45,8 @@ function GroupPage() {
   const createSettlement = useMutation(api.settlements.create);
   const deleteGroup = useMutation(api.groups.deleteGroup);
   const deleteExpense = useMutation(api.expenses.deleteExpense);
+  const updateGroup = useMutation(api.groups.update);
+  const updateUsers = useMutation(api.groups.updateUsers);
 
   const [showSettleForm, setShowSettleForm] = useState(false);
   const [settleFrom, setSettleFrom] = useState("");
@@ -55,6 +60,7 @@ function GroupPage() {
   const [expenseToDelete, setExpenseToDelete] = useState<Id<"expenses"> | null>(
     null
   );
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleDeleteGroup = async () => {
     await deleteGroup({ groupId: groupId as Id<"groups"> });
@@ -114,6 +120,30 @@ function GroupPage() {
           >
             Delete Group
           </Button>
+          <Dialog open={showSettings} onOpenChange={setShowSettings}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Group Settings</DialogTitle>
+              </DialogHeader>
+              {group && users && (
+                <GroupSettingsForm
+                  group={group}
+                  participants={users}
+                  onSubmit={async (data) => {
+                    await updateGroup({ groupId: group._id, name: data.name, currency: data.currency });
+                    await updateUsers({ users: data.participants });
+                    setShowSettings(false);
+                  }}
+                  onCancel={() => setShowSettings(false)}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
