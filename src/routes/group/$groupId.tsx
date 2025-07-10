@@ -1,7 +1,9 @@
 import { createFileRoute, useRouter, Outlet } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
+import type { Id, Doc } from "../../../convex/_generated/dataModel";
+
+type Expense = Doc<"expenses">;
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { GroupSettingsForm } from "@/components/group-settings-form";
+import { ExpenseForm } from "@/components/expense-form";
 import { Settings } from "lucide-react";
 
 export const Route = createFileRoute("/group/$groupId")({
@@ -53,6 +56,8 @@ function GroupPage() {
   const deleteExpense = useMutation(api.expenses.deleteExpense);
   const updateGroup = useMutation(api.groups.update);
   const updateGroupMembers = useMutation(api.groups.updateGroupMembers);
+  const createExpense = useMutation(api.expenses.create);
+  const updateExpense = useMutation(api.expenses.update);
 
   const [showSettleForm, setShowSettleForm] = useState(false);
   const [settleFrom, setSettleFrom] = useState("");
@@ -67,6 +72,8 @@ function GroupPage() {
     null
   );
   const [showSettings, setShowSettings] = useState(false);
+  const [showExpenseDialog, setShowExpenseDialog] = useState(false);
+  const [currentExpense, setCurrentExpense] = useState<Expense | undefined>(undefined);
 
   const handleDeleteGroup = async () => {
     await deleteGroup({ groupId: groupId as Id<"groups"> });
@@ -112,9 +119,10 @@ function GroupPage() {
         <h1 className="text-3xl font-bold text-primary">{group?.name}</h1>
         <div className="flex space-x-2">
           <Button
-            onClick={() =>
-              router.navigate({ to: `/group/${groupId}/new-expense` })
-            }
+            onClick={() => {
+              setCurrentExpense(undefined);
+              setShowExpenseDialog(true);
+            }}
           >
             Add Expense
           </Button>
@@ -156,6 +164,35 @@ function GroupPage() {
               )}
             </DialogContent>
           </Dialog>
+          <Dialog open={showExpenseDialog} onOpenChange={setShowExpenseDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {currentExpense ? "Edit Expense" : "Add Expense"}
+                </DialogTitle>
+              </DialogHeader>
+              <ExpenseForm
+                groupId={groupId as Id<"groups">}
+                initialData={currentExpense}
+                onSubmit={async (data) => {
+                  if (data.expenseId) {
+                    await updateExpense({ ...data, expenseId: data.expenseId as Id<"expenses"> });
+                  } else {
+                    await createExpense({ groupId: groupId as Id<"groups">, ...data });
+                  }
+                  setShowExpenseDialog(false);
+                  setCurrentExpense(undefined);
+                }}
+                submitButtonText={
+                  currentExpense ? "Update Expense" : "Add Expense"
+                }
+                onCancel={() => {
+                  setShowExpenseDialog(false);
+                  setCurrentExpense(undefined);
+                }}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -192,11 +229,10 @@ function GroupPage() {
                   </p>
                 </div>
                 <Button
-                  onClick={() =>
-                    router.navigate({
-                      to: `/group/${groupId}/edit-expense/${expense._id}`,
-                    })
-                  }
+                  onClick={() => {
+                    setCurrentExpense(expense);
+                    setShowExpenseDialog(true);
+                  }}
                   variant="outline"
                   size="sm"
                   className="mr-2"

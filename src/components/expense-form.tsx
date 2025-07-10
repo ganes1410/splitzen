@@ -6,7 +6,6 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { useRouter } from "@tanstack/react-router";
 
 interface ExpenseFormProps {
   groupId: Id<"groups">;
@@ -27,6 +26,7 @@ interface ExpenseFormProps {
     date?: string;
   }) => void;
   submitButtonText: string;
+  onCancel: () => void;
 }
 
 const expenseSchema = z.object({
@@ -44,6 +44,7 @@ export function ExpenseForm({
   initialData,
   onSubmit,
   submitButtonText,
+  onCancel,
 }: ExpenseFormProps) {
   const [amount, setAmount] = useState(initialData?.amount.toString() || "");
   const [description, setDescription] = useState(
@@ -55,10 +56,10 @@ export function ExpenseForm({
   const [splitAmong, setSplitAmong] = useState<string[]>(
     initialData?.splitAmong || []
   );
-  const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(
+    initialData?.date || new Date().toISOString().split("T")[0]
+  );
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
-
-  const router = useRouter();
   const users = useQuery(api.users.getUsersInGroup, { groupId });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,7 +103,7 @@ export function ExpenseForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 max-w-md mx-auto p-6 bg-card rounded-lg shadow-md"
+      className="space-y-4 p-2 rounded-lg shadow-md"
     >
       <div>
         <label
@@ -145,7 +146,10 @@ export function ExpenseForm({
         />
         {errors?.find((e: z.ZodIssue) => e.path[0] === "description") && (
           <p className="text-destructive text-sm mt-1">
-            {errors.find((e: z.ZodIssue) => e.path[0] === "description")?.message}
+            {
+              errors.find((e: z.ZodIssue) => e.path[0] === "description")
+                ?.message
+            }
           </p>
         )}
       </div>
@@ -214,7 +218,10 @@ export function ExpenseForm({
         />
         {errors?.find((e: z.ZodIssue) => e.path[0] === "splitAmong") && (
           <p className="text-destructive text-sm mt-1">
-            {errors.find((e: z.ZodIssue) => e.path[0] === "splitAmong")?.message}
+            {
+              errors.find((e: z.ZodIssue) => e.path[0] === "splitAmong")
+                ?.message
+            }
           </p>
         )}
       </div>
@@ -236,7 +243,7 @@ export function ExpenseForm({
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.history.back()}
+          onClick={onCancel}
           className="w-full"
         >
           Cancel

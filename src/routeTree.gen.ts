@@ -13,8 +13,6 @@ import { Route as NewRouteImport } from './routes/new'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JoinInviteCodeRouteImport } from './routes/join/$inviteCode'
 import { Route as GroupGroupIdRouteImport } from './routes/group/$groupId'
-import { Route as GroupGroupIdNewExpenseRouteImport } from './routes/group/$groupId/new-expense'
-import { Route as GroupGroupIdEditExpenseExpenseIdRouteImport } from './routes/group/$groupId/edit-expense/$expenseId'
 
 const NewRoute = NewRouteImport.update({
   id: '/new',
@@ -36,74 +34,38 @@ const GroupGroupIdRoute = GroupGroupIdRouteImport.update({
   path: '/group/$groupId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GroupGroupIdNewExpenseRoute = GroupGroupIdNewExpenseRouteImport.update({
-  id: '/new-expense',
-  path: '/new-expense',
-  getParentRoute: () => GroupGroupIdRoute,
-} as any)
-const GroupGroupIdEditExpenseExpenseIdRoute =
-  GroupGroupIdEditExpenseExpenseIdRouteImport.update({
-    id: '/edit-expense/$expenseId',
-    path: '/edit-expense/$expenseId',
-    getParentRoute: () => GroupGroupIdRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/new': typeof NewRoute
-  '/group/$groupId': typeof GroupGroupIdRouteWithChildren
+  '/group/$groupId': typeof GroupGroupIdRoute
   '/join/$inviteCode': typeof JoinInviteCodeRoute
-  '/group/$groupId/new-expense': typeof GroupGroupIdNewExpenseRoute
-  '/group/$groupId/edit-expense/$expenseId': typeof GroupGroupIdEditExpenseExpenseIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/new': typeof NewRoute
-  '/group/$groupId': typeof GroupGroupIdRouteWithChildren
+  '/group/$groupId': typeof GroupGroupIdRoute
   '/join/$inviteCode': typeof JoinInviteCodeRoute
-  '/group/$groupId/new-expense': typeof GroupGroupIdNewExpenseRoute
-  '/group/$groupId/edit-expense/$expenseId': typeof GroupGroupIdEditExpenseExpenseIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/new': typeof NewRoute
-  '/group/$groupId': typeof GroupGroupIdRouteWithChildren
+  '/group/$groupId': typeof GroupGroupIdRoute
   '/join/$inviteCode': typeof JoinInviteCodeRoute
-  '/group/$groupId/new-expense': typeof GroupGroupIdNewExpenseRoute
-  '/group/$groupId/edit-expense/$expenseId': typeof GroupGroupIdEditExpenseExpenseIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/new'
-    | '/group/$groupId'
-    | '/join/$inviteCode'
-    | '/group/$groupId/new-expense'
-    | '/group/$groupId/edit-expense/$expenseId'
+  fullPaths: '/' | '/new' | '/group/$groupId' | '/join/$inviteCode'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/new'
-    | '/group/$groupId'
-    | '/join/$inviteCode'
-    | '/group/$groupId/new-expense'
-    | '/group/$groupId/edit-expense/$expenseId'
-  id:
-    | '__root__'
-    | '/'
-    | '/new'
-    | '/group/$groupId'
-    | '/join/$inviteCode'
-    | '/group/$groupId/new-expense'
-    | '/group/$groupId/edit-expense/$expenseId'
+  to: '/' | '/new' | '/group/$groupId' | '/join/$inviteCode'
+  id: '__root__' | '/' | '/new' | '/group/$groupId' | '/join/$inviteCode'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   NewRoute: typeof NewRoute
-  GroupGroupIdRoute: typeof GroupGroupIdRouteWithChildren
+  GroupGroupIdRoute: typeof GroupGroupIdRoute
   JoinInviteCodeRoute: typeof JoinInviteCodeRoute
 }
 
@@ -137,41 +99,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupGroupIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/group/$groupId/new-expense': {
-      id: '/group/$groupId/new-expense'
-      path: '/new-expense'
-      fullPath: '/group/$groupId/new-expense'
-      preLoaderRoute: typeof GroupGroupIdNewExpenseRouteImport
-      parentRoute: typeof GroupGroupIdRoute
-    }
-    '/group/$groupId/edit-expense/$expenseId': {
-      id: '/group/$groupId/edit-expense/$expenseId'
-      path: '/edit-expense/$expenseId'
-      fullPath: '/group/$groupId/edit-expense/$expenseId'
-      preLoaderRoute: typeof GroupGroupIdEditExpenseExpenseIdRouteImport
-      parentRoute: typeof GroupGroupIdRoute
-    }
   }
 }
-
-interface GroupGroupIdRouteChildren {
-  GroupGroupIdNewExpenseRoute: typeof GroupGroupIdNewExpenseRoute
-  GroupGroupIdEditExpenseExpenseIdRoute: typeof GroupGroupIdEditExpenseExpenseIdRoute
-}
-
-const GroupGroupIdRouteChildren: GroupGroupIdRouteChildren = {
-  GroupGroupIdNewExpenseRoute: GroupGroupIdNewExpenseRoute,
-  GroupGroupIdEditExpenseExpenseIdRoute: GroupGroupIdEditExpenseExpenseIdRoute,
-}
-
-const GroupGroupIdRouteWithChildren = GroupGroupIdRoute._addFileChildren(
-  GroupGroupIdRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NewRoute: NewRoute,
-  GroupGroupIdRoute: GroupGroupIdRouteWithChildren,
+  GroupGroupIdRoute: GroupGroupIdRoute,
   JoinInviteCodeRoute: JoinInviteCodeRoute,
 }
 export const routeTree = rootRouteImport
