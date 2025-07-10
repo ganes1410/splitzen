@@ -59,12 +59,15 @@ export const getBalances = query({
     const positiveBalances: { userId: string; amount: number }[] = [];
     const negativeBalances: { userId: string; amount: number }[] = [];
 
+    const EPSILON = 0.0001; // A small value to account for floating-point inaccuracies
+
     for (const userId in balances) {
-      if (balances[userId] > 0) {
+      if (balances[userId] > EPSILON) { // Check if significantly positive
         positiveBalances.push({ userId, amount: balances[userId] });
-      } else if (balances[userId] < 0) {
+      } else if (balances[userId] < -EPSILON) { // Check if significantly negative
         negativeBalances.push({ userId, amount: -balances[userId] });
       }
+      // If balance is between -EPSILON and EPSILON, treat as zero and ignore
     }
 
     let i = 0;
@@ -79,18 +82,19 @@ export const getBalances = query({
       allTransactions.push({
         from: receiver.userId,
         to: giver.userId,
-        amount,
+        amount: parseFloat(amount.toFixed(2)), // Round for display
         currency,
       });
 
       giver.amount -= amount;
       receiver.amount -= amount;
 
-      if (giver.amount === 0) {
+      // Advance pointers if balances are effectively zero
+      if (giver.amount <= EPSILON) {
         i++;
       }
 
-      if (receiver.amount === 0) {
+      if (receiver.amount <= EPSILON) {
         j++;
       }
     }
