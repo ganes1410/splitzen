@@ -8,7 +8,6 @@ export const create = mutation({
     payerId: v.id("users"),
     amount: v.number(),
     description: v.string(),
-    currency: v.string(),
     splitAmong: v.array(v.id("users")),
   },
   handler: async (ctx, args) => {
@@ -44,7 +43,6 @@ export const update = mutation({
     payerId: v.id("users"),
     amount: v.number(),
     description: v.string(),
-    currency: v.string(),
     splitAmong: v.array(v.id("users")),
   },
   handler: async (ctx, args) => {

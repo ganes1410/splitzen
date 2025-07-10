@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
+import { currencies } from "@/lib/currencies";
 
 export const Route = createFileRoute("/new")({
   component: CreateGroup,
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/new")({
 const createGroupSchema = z.object({
   groupName: z.string().min(3, "Group name must be at least 3 characters"),
   userName: z.string().min(2, "Your name must be at least 2 characters"),
+  currency: z.string().min(1, "Please select a currency"),
 });
 
 function CreateGroup() {
@@ -20,13 +22,14 @@ function CreateGroup() {
   const router = useRouter();
   const [groupName, setGroupName] = useState("");
   const [userName, setUserName] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors(null);
 
-    const result = createGroupSchema.safeParse({ groupName, userName });
+    const result = createGroupSchema.safeParse({ groupName, userName, currency });
 
     if (!result.success) {
       setErrors(result.error.issues);
@@ -96,6 +99,35 @@ function CreateGroup() {
           {errors?.find((e) => e.path[0] === "userName") && (
             <p className="text-destructive text-sm mt-1">
               {errors.find((e) => e.path[0] === "userName")?.message}
+            </p>
+          )}
+        </div>
+        <div>
+          <label
+            htmlFor="currency"
+            className="block text-sm font-medium text-foreground mb-1"
+          >
+            Currency
+          </label>
+          <Input
+            id="currency"
+            name="currency"
+            list="currency-list"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            placeholder="Select Currency"
+            className="w-full"
+          />
+          <datalist id="currency-list">
+            {currencies.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </datalist>
+          {errors?.find((e) => e.path[0] === "currency") && (
+            <p className="text-destructive text-sm mt-1">
+              {errors.find((e) => e.path[0] === "currency")?.message}
             </p>
           )}
         </div>

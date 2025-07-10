@@ -6,6 +6,7 @@ export default defineSchema({
   groups: defineTable({
     name: v.string(),
     inviteCode: v.string(),
+    currency: v.string(),
   }).index("by_inviteCode", ["inviteCode"]),
   users: defineTable({
     name: v.string(),
@@ -22,7 +23,6 @@ export default defineSchema({
     payerId: v.id("users"),
     amount: v.number(),
     description: v.string(),
-    currency: v.optional(v.string()),
     splitAmong: v.array(v.id("users")),
   }),
   settlements: defineTable({

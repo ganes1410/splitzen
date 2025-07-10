@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const create = mutation({
-  args: { groupName: v.string(), userName: v.string(), userId: v.optional(v.string()) },
+  args: { groupName: v.string(), userName: v.string(), currency: v.string(), userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     let currentUserId: string;
     let userRecordId: any;
@@ -28,7 +28,7 @@ export const create = mutation({
     }
 
     const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const groupId = await ctx.db.insert("groups", { name: args.groupName, inviteCode });
+    const groupId = await ctx.db.insert("groups", { name: args.groupName, inviteCode, currency: args.currency });
 
     await ctx.db.insert("members", { userId: userRecordId, groupId });
 

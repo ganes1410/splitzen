@@ -6,8 +6,6 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
-import { currencies } from "@/lib/currencies";
-
 interface ExpenseFormProps {
   groupId: Id<"groups">;
   initialData?: {
@@ -16,7 +14,6 @@ interface ExpenseFormProps {
     description: string;
     payerId: Id<"users">;
     splitAmong: Id<"users">[];
-    currency?: string;
   };
   onSubmit: (data: {
     expenseId?: Id<"expenses">;
@@ -24,7 +21,6 @@ interface ExpenseFormProps {
     description: string;
     payerId: Id<"users">;
     splitAmong: Id<"users">[];
-    currency: string;
   }) => void;
   submitButtonText: string;
   onCancel?: () => void;
@@ -37,7 +33,6 @@ const expenseSchema = z.object({
   splitAmong: z
     .array(z.string())
     .min(1, "Please select at least one person to split with"),
-  currency: z.string().min(1, "Please select a currency"),
 });
 
 export function ExpenseForm({
@@ -57,7 +52,6 @@ export function ExpenseForm({
   const [splitAmong, setSplitAmong] = useState<Id<"users">[]>(
     initialData?.splitAmong || []
   );
-  const [currency, setCurrency] = useState(initialData?.currency || "USD");
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
 
   const users = useQuery(api.users.getUsersInGroup, { groupId });
@@ -68,7 +62,6 @@ export function ExpenseForm({
       setDescription(initialData.description);
       setPayerId(initialData.payerId);
       setSplitAmong(initialData.splitAmong);
-      setCurrency(initialData.currency || "USD");
     }
   }, [initialData]);
 
@@ -89,7 +82,6 @@ export function ExpenseForm({
       description,
       payerId,
       splitAmong,
-      currency,
     });
 
     if (!result.success) {
@@ -103,7 +95,6 @@ export function ExpenseForm({
       description: result.data.description,
       payerId: result.data.payerId as Id<"users">,
       splitAmong: result.data.splitAmong as Id<"users">[],
-      currency: result.data.currency,
     });
   };
 
@@ -143,36 +134,6 @@ export function ExpenseForm({
         {errors?.find((e) => e.path[0] === "amount") && (
           <p className="text-destructive text-sm mt-1">
             {errors.find((e) => e.path[0] === "amount")?.message}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label
-          htmlFor="currency"
-          className="block text-sm font-medium text-foreground mb-1"
-        >
-          Currency
-        </label>
-        <Input
-          id="currency"
-          name="currency"
-          list="currency-list"
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-          placeholder="Select Currency"
-          className="w-full"
-        />
-        <datalist id="currency-list">
-          {currencies.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name}
-            </option>
-          ))}
-        </datalist>
-        {errors?.find((e) => e.path[0] === "currency") && (
-          <p className="text-destructive text-sm mt-1">
-            {errors.find((e) => e.path[0] === "currency")?.message}
           </p>
         )}
       </div>
@@ -279,3 +240,4 @@ export function ExpenseForm({
     </form>
   );
 }
+
