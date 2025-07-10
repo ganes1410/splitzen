@@ -6,11 +6,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { GroupSettingsForm } from "@/components/group-settings-form";
 import { Settings } from "lucide-react";
 
-export const Route = createFileRoute('/group/$groupId')({
+export const Route = createFileRoute("/group/$groupId")({
   component: GroupPage,
   loader: async ({ params }) => {
     return { groupId: params.groupId } as { groupId: Id<"groups"> };
@@ -18,7 +24,7 @@ export const Route = createFileRoute('/group/$groupId')({
   staticData: ({ loaderData }: { loaderData: { groupId: Id<"groups"> } }) => ({
     title: `Splitzen - Group ${loaderData.groupId}`,
   }),
-})
+});
 
 function GroupPage() {
   const { groupId } = Route.useParams();
@@ -134,10 +140,17 @@ function GroupPage() {
                 <GroupSettingsForm
                   group={group}
                   allParticipants={users}
-                  initialSelectedParticipants={users.map(u => u._id)}
+                  initialSelectedParticipants={users.map((u) => u._id)}
                   onSubmit={async (data) => {
-                    await updateGroup({ groupId: group._id, name: data.name, currency: data.currency });
-                    await updateGroupMembers({ groupId: group._id, selectedParticipantIds: data.selectedParticipantIds });
+                    await updateGroup({
+                      groupId: group._id,
+                      name: data.name,
+                      currency: data.currency,
+                    });
+                    await updateGroupMembers({
+                      groupId: group._id,
+                      selectedParticipantIds: data.selectedParticipantIds,
+                    });
                     setShowSettings(false);
                   }}
                   onCancel={() => setShowSettings(false)}

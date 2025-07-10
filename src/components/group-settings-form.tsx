@@ -84,18 +84,19 @@ export function GroupSettingsForm({
           Currency
         </label>
         <Input
-          id="currency"
-          list="currency-list"
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-        />
-        <datalist id="currency-list">
-          {currencies.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name}
-            </option>
-          ))}
-        </datalist>
+            id="currency"
+            list="currency-list"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            placeholder="e.g., USD"
+          />
+          <datalist id="currency-list">
+            {currencies.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.code} ({c.symbol})
+              </option>
+            ))}
+          </datalist>
         {errors?.find((e) => e.path[0] === "currency") && (
           <p className="text-destructive text-sm mt-1">
             {errors.find((e) => e.path[0] === "currency")?.message}
