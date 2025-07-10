@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { currencies } from "@/lib/currencies";
+import { Combobox } from "@/components/ui/combobox";
 
 export const Route = createFileRoute("/new")({
   component: CreateGroup,
@@ -129,22 +130,15 @@ function CreateGroup() {
           >
             Currency
           </label>
-          <Input
-            id="currency"
-            name="currency"
-            list="currency-list"
+          <Combobox
+            options={currencies.map((c) => ({
+              value: c.code,
+              label: `${c.code} (${c.symbol})`,
+            }))}
             value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
+            onChange={setCurrency}
             placeholder="Select Currency"
-            className="w-full"
           />
-          <datalist id="currency-list">
-            {currencies.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
-            ))}
-          </datalist>
           {errors?.find((e) => e.path[0] === "currency") && (
             <p className="text-destructive text-sm mt-1">
               {errors.find((e) => e.path[0] === "currency")?.message}
