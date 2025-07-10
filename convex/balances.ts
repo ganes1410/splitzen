@@ -11,6 +11,10 @@ export const getBalances = query({
     }
     const currency = group.currency;
 
+    if (!currency) {
+      return [];
+    }
+
     const expenses = await ctx.db
       .query("expenses")
       .filter((q) => q.eq(q.field("groupId"), args.groupId))
