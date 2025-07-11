@@ -25,8 +25,17 @@ interface GroupSettingsFormProps {
     selectedParticipantIds: Id<"users">[];
   }) => void;
   onCancel: () => void;
-  addUserToGroup: (name: string, groupId: Id<"groups">) => Promise<any>;
-  removeUserFromGroup: (userId: Id<"users">, groupId: Id<"groups">) => Promise<any>;
+  addUserToGroup: (
+    name: string,
+    groupId: Id<"groups">
+  ) => Promise<{
+    userId: string;
+    userRecordId: Id<"users">;
+  }>;
+  removeUserFromGroup: (
+    userId: Id<"users">,
+    groupId: Id<"groups">
+  ) => Promise<any>;
 }
 
 const groupSettingsSchema = z.object({
@@ -50,8 +59,10 @@ export function GroupSettingsForm({
   >(initialSelectedParticipants);
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
   const [newParticipantName, setNewParticipantName] = useState("");
-  const [showRemoveParticipantConfirm, setShowRemoveParticipantConfirm] = useState(false);
-  const [participantToRemove, setParticipantToRemove] = useState<Id<"users"> | null>(null);
+  const [showRemoveParticipantConfirm, setShowRemoveParticipantConfirm] =
+    useState(false);
+  const [participantToRemove, setParticipantToRemove] =
+    useState<Id<"users"> | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,11 +83,13 @@ export function GroupSettingsForm({
   };
 
   const handleAddParticipant = async () => {
-    if (newParticipantName.trim() !== "") {
-      const { userRecordId } = await addUserToGroup(newParticipantName, group._id);
-      setSelectedParticipantIds((prev) => [...prev, userRecordId as Id<"users">]);
-      setNewParticipantName("");
-    }
+    if (newParticipantName.trim() === "") return;
+    const { userRecordId } = await addUserToGroup(
+      newParticipantName,
+      group._id
+    );
+    setSelectedParticipantIds((prev) => [...prev, userRecordId as Id<"users">]);
+    setNewParticipantName("");
   };
 
   const handleRemoveParticipant = (userId: string) => {
@@ -87,7 +100,9 @@ export function GroupSettingsForm({
   const confirmRemoveParticipant = async () => {
     if (participantToRemove) {
       await removeUserFromGroup(participantToRemove, group._id);
-      setSelectedParticipantIds(selectedParticipantIds.filter(id => id !== participantToRemove));
+      setSelectedParticipantIds(
+        selectedParticipantIds.filter((id) => id !== participantToRemove)
+      );
       setParticipantToRemove(null);
       setShowRemoveParticipantConfirm(false);
     }

@@ -65,7 +65,10 @@ function GroupSettingsPage() {
           router.navigate({ to: "/group/$groupId", params: { groupId } })
         }
         addUserToGroup={async (name) => {
-          await addUserToGroup({ name, groupId: groupId as Id<"groups"> });
+          return await addUserToGroup({
+            name,
+            groupId: groupId as Id<"groups">,
+          });
         }}
         removeUserFromGroup={async (userId, groupId) => {
           await removeUserFromGroup({ userId, groupId });
