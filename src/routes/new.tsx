@@ -106,7 +106,7 @@ function CreateGroup() {
             </p>
           )}
         </div>
-        {!localStorage.getItem("userId") ? (
+        {typeof window !== "undefined" && !localStorage.getItem("userId") ? (
           <div>
             <label
               htmlFor="user-name"

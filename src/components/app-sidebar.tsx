@@ -19,6 +19,7 @@ import { useQuery } from "convex/react";
 import { useRouterState, Outlet, Link } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { ThemeToggle } from "./theme-toggle";
+import { useEffect, useState } from "react";
 
 const AppHeader = () => {
   const { isMobile, setOpenMobile } = useSidebar();
@@ -45,8 +46,13 @@ const AppHeader = () => {
 };
 
 const AppSidebar = () => {
-  // const userId = localStorage.getItem("userId");
-  const userId = "";
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setUserId(localStorage.getItem("userId"));
+    }
+  }, []);
   const groups = useQuery(
     api.groups.getGroupsForUser,
     userId === null ? "skip" : { userId }

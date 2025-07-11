@@ -1,6 +1,6 @@
 // src/routes/__root.tsx
 /// <reference types="vite/client" />
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
   Outlet,
   createRootRoute,
@@ -44,6 +44,24 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     <html>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  if (!theme) {
+                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  }
+                  document.documentElement.classList.add(theme);
+                  document.documentElement.classList.remove(theme === 'light' ? 'dark' : 'light');
+                } catch (e) {
+                  console.error("Failed to set theme:", e);
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body>
         <AppSidebar />

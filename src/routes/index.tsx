@@ -9,7 +9,12 @@ export const Route = createFileRoute("/")({
     title: "Splitzen - Welcome",
   },
   loader: () => {
-    return { userId: "" };
+    // Initialize userId to null for SSR, then hydrate on client
+    if (typeof window === 'undefined') {
+      return { userId: null };
+    }
+    const userId = localStorage.getItem("userId");
+    return { userId };
   },
 });
 
