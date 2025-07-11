@@ -3,27 +3,20 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface IndexLoaderData {
-  userId: string | null;
-}
-
-export const Route = createFileRoute("/")<IndexLoaderData>({
+export const Route = createFileRoute("/")({
   component: Home,
   staticData: {
     title: "Splitzen - Welcome",
   },
   loader: () => {
-    const userId = localStorage.getItem("userId");
-    return { userId };
+    return { userId: "" };
   },
 });
 
 function Home() {
   const router = useRouter();
   const [inviteCode, setInviteCode] = useState("");
-  const { userId } = Route.useLoaderData() as IndexLoaderData;
-
-  console.log("userId from loader:", userId ?? "undefined");
+  const { userId } = Route.useLoaderData();
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
