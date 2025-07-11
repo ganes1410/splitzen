@@ -122,6 +122,17 @@ export const getMembership = query({
 export const removeUserFromGroup = mutation({
   args: { userId: v.id("users"), groupId: v.id("groups") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const authenticatedUserConvexId = identity?.subject; // This is the Convex user ID (string) from auth provider
+
+    // Get the user record corresponding to args.userId
+    const userBeingRemoved = await ctx.db.get(args.userId);
+
+    if (!userBeingRemoved) {
+      // User record not found, nothing to do
+      return;
+    }
+
     const membership = await ctx.db
       .query("members")
       .filter((q) => q.eq(q.field("userId"), args.userId))
@@ -130,6 +141,21 @@ export const removeUserFromGroup = mutation({
 
     if (membership) {
       await ctx.db.delete(membership._id);
+
+      // Check if the user has any other memberships
+      const remainingMemberships = await ctx.db
+        .query("members")
+        .filter((q) => q.eq(q.field("userId"), args.userId))
+        .collect();
+
+      // If no other memberships, and the user being removed is NOT the authenticated user, then delete the user record.
+      // We compare userBeingRemoved.userId (the string ID from the auth provider) with authenticatedUserConvexId
+      if (remainingMemberships.length === 0 && userBeingRemoved.userId !== authenticatedUserConvexId) {
+        await ctx.db.delete(args.userId);
+      } else if (remainingMemberships.length === 0 && userBeingRemoved.userId === authenticatedUserConvexId) {
+        // This is the authenticated user and their last group. Do not delete their user record.
+        console.log(`Prevented deletion of authenticated user ${userBeingRemoved._id} from their last group.`);
+      }
     }
   },
 });

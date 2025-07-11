@@ -84,12 +84,18 @@ export function GroupSettingsForm({
 
   const handleAddParticipant = async () => {
     if (newParticipantName.trim() === "") return;
-    const { userRecordId } = await addUserToGroup(
-      newParticipantName,
-      group._id
-    );
-    setSelectedParticipantIds((prev) => [...prev, userRecordId as Id<"users">]);
-    setNewParticipantName("");
+    try {
+      const { userRecordId } = await addUserToGroup(
+        newParticipantName,
+        group._id
+      );
+      setSelectedParticipantIds((prev) => [...prev, userRecordId as Id<"users">]);
+      setNewParticipantName("");
+    } catch (error) {
+      console.error("Failed to add participant:", error);
+      // Optionally, display an error message to the user
+      // setErrors([{ message: "Failed to add participant", path: ["newParticipantName"] }]);
+    }
   };
 
   const handleRemoveParticipant = (userId: string) => {
