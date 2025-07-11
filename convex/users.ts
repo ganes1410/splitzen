@@ -14,7 +14,10 @@ export const addUserToGroup = mutation({
   args: { name: v.string(), groupId: v.id("groups") },
   handler: async (ctx, args) => {
     const userId = Math.random().toString(36).substring(2, 15);
-    const userRecordId = await ctx.db.insert("users", { name: args.name, userId });
+    const userRecordId = await ctx.db.insert("users", {
+      name: args.name,
+      userId,
+    });
 
     await ctx.db.insert("members", {
       userId: userRecordId,
@@ -150,11 +153,19 @@ export const removeUserFromGroup = mutation({
 
       // If no other memberships, and the user being removed is NOT the authenticated user, then delete the user record.
       // We compare userBeingRemoved.userId (the string ID from the auth provider) with authenticatedUserConvexId
-      if (remainingMemberships.length === 0 && userBeingRemoved.userId !== authenticatedUserConvexId) {
+      if (
+        remainingMemberships.length === 0 &&
+        userBeingRemoved.userId !== authenticatedUserConvexId
+      ) {
         await ctx.db.delete(args.userId);
-      } else if (remainingMemberships.length === 0 && userBeingRemoved.userId === authenticatedUserConvexId) {
+      } else if (
+        remainingMemberships.length === 0 &&
+        userBeingRemoved.userId === authenticatedUserConvexId
+      ) {
         // This is the authenticated user and their last group. Do not delete their user record.
-        console.log(`Prevented deletion of authenticated user ${userBeingRemoved._id} from their last group.`);
+        console.log(
+          `Prevented deletion of authenticated user ${userBeingRemoved._id} from their last group.`
+        );
       }
     }
   },

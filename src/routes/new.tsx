@@ -36,13 +36,20 @@ function CreateGroup() {
     e.preventDefault();
     setErrors(null);
     setLoading(true);
+
+    const trimmedGroupName = groupName.trim();
+    const trimmedUserName = userName.trim();
+
     const isUserPresent = Boolean(localStorage.getItem("userId"));
 
     const result = isUserPresent
-      ? createGroupWithUserSchema.safeParse({ groupName, currency })
+      ? createGroupWithUserSchema.safeParse({
+          groupName: trimmedGroupName,
+          currency,
+        })
       : createGroupSchema.safeParse({
-          groupName,
-          userName,
+          groupName: trimmedGroupName,
+          userName: trimmedUserName,
           currency,
         });
 
@@ -55,11 +62,12 @@ function CreateGroup() {
     try {
       let userId = localStorage.getItem("userId") || undefined;
       const { groupId, userId: newUserId } = await createGroup({
-        ...result.data,
+        groupName: trimmedGroupName,
+        currency: result.data.currency,
         userId,
         userName: isUserPresent
           ? (localStorage.getItem("userId") ?? "")
-          : userName,
+          : trimmedUserName,
       });
       if (!userId) {
         localStorage.setItem("userId", newUserId);

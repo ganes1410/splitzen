@@ -7,6 +7,7 @@ import { currencies } from "@/lib/currencies";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Combobox } from "@/components/ui/combobox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
 
 interface GroupSettingsFormProps {
   group: {
@@ -16,9 +17,13 @@ interface GroupSettingsFormProps {
   };
   allParticipants: {
     _id: Id<"users">;
+    _creationTime: number;
+    userId?: string | undefined;
+    groupId?: string | undefined;
+    sessionId?: string | undefined;
     name: string;
   }[];
-  initialSelectedParticipants: Id<"users">[];
+  initialSelectedParticipants: string[];
   onSubmit: (data: {
     name: string;
     currency: string;
@@ -32,10 +37,7 @@ interface GroupSettingsFormProps {
     userId: string;
     userRecordId: Id<"users">;
   }>;
-  removeUserFromGroup: (
-    userId: Id<"users">,
-    groupId: Id<"groups">
-  ) => Promise<any>;
+  removeUserFromGroup: (userId: string, groupId: Id<"groups">) => Promise<any>;
 }
 
 const groupSettingsSchema = z.object({
@@ -80,26 +82,28 @@ export function GroupSettingsForm({
       currency: result.data.currency,
       selectedParticipantIds: selectedParticipantIds as Id<"users">[],
     });
+    toast.success("Group settings updated!");
   };
 
   const handleAddParticipant = async () => {
     if (newParticipantName.trim() === "") return;
     try {
-      const { userRecordId } = await addUserToGroup(
-        newParticipantName,
-        group._id
-      );
-      setSelectedParticipantIds((prev) => [...prev, userRecordId as Id<"users">]);
+      const { userId } = await addUserToGroup(newParticipantName, group._id);
+      setSelectedParticipantIds((prev) => [...prev, userId as Id<"users">]);
       setNewParticipantName("");
+      toast.success("Participant added!");
     } catch (error) {
       console.error("Failed to add participant:", error);
-      // Optionally, display an error message to the user
-      // setErrors([{ message: "Failed to add participant", path: ["newParticipantName"] }]);
+      toast.error("Failed to add participant. Please try again.");
     }
   };
 
-  const handleRemoveParticipant = (userId: string) => {
-    setParticipantToRemove(userId as Id<"users">);
+  const handleRemoveParticipant = (userIdToRemove: string) => {
+    if (userIdToRemove === localStorage.getItem("userId")) {
+      toast.error("You cannot remove yourself from the group.");
+      return;
+    }
+    setParticipantToRemove(userIdToRemove as Id<"users">);
     setShowRemoveParticipantConfirm(true);
   };
 
@@ -162,7 +166,7 @@ export function GroupSettingsForm({
         </h3>
         <MultiSelect
           options={allParticipants.map((p) => ({
-            value: p._id,
+            value: p?.userId || p._id,
             label: p.name,
           }))}
           selected={selectedParticipantIds}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Id } from "../../convex/_generated/dataModel";
+import { toast } from "sonner";
 
 interface SettleFormProps {
   users: { _id: Id<"users">; name: string }[];
@@ -28,6 +29,7 @@ export function SettleForm({ users, onSubmit, onCancel }: SettleFormProps) {
       amount: parseFloat(settleAmount),
       note: settleNote || undefined,
     });
+    toast.success("Settlement recorded successfully!");
   };
 
   return (

@@ -6,6 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { MultiSelect } from "@/components/ui/multi-select";
+import { toast } from "sonner";
 
 interface ExpenseFormProps {
   groupId: Id<"groups">;
@@ -87,6 +88,7 @@ export function ExpenseForm({
       splitAmong: result.data.splitAmong as Id<"users">[],
       date: result.data.date,
     });
+    toast.success("Expense added successfully!");
   };
 
   if (users === undefined) {
