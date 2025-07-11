@@ -106,30 +106,34 @@ function CreateGroup() {
             </p>
           )}
         </div>
-        {typeof window !== "undefined" && !localStorage.getItem("userId") ? (
-          <div>
-            <label
-              htmlFor="user-name"
-              className="block text-sm font-medium text-foreground mb-1"
-            >
-              Your Name
-            </label>
-            <Input
-              id="user-name"
-              name="user-name"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="e.g., Alice"
-              className="w-full"
-              disabled={loading}
-            />
-            {errors?.find((e) => e.path[0] === "userName") && (
-              <p className="text-destructive text-sm mt-1">
-                {errors.find((e) => e.path[0] === "userName")?.message}
-              </p>
-            )}
-          </div>
-        ) : null}
+
+        <div>
+          <label
+            htmlFor="user-name"
+            className="block text-sm font-medium text-foreground mb-1"
+          >
+            Your Name
+          </label>
+          <Input
+            id="user-name"
+            name="user-name"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="e.g., Alice"
+            className="w-full"
+            disabled={
+              loading ||
+              (typeof window !== "undefined" &&
+                localStorage.getItem("userId") !== null)
+            }
+          />
+          {errors?.find((e) => e.path[0] === "userName") && (
+            <p className="text-destructive text-sm mt-1">
+              {errors.find((e) => e.path[0] === "userName")?.message}
+            </p>
+          )}
+        </div>
+
         <div>
           <label
             htmlFor="currency"
