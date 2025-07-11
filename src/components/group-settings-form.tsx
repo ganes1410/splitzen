@@ -24,6 +24,7 @@ interface GroupSettingsFormProps {
     selectedParticipantIds: Id<"users">[];
   }) => void;
   onCancel: () => void;
+  addUserToGroup: (name: string, groupId: Id<"groups">) => Promise<any>;
 }
 
 const groupSettingsSchema = z.object({
@@ -37,13 +38,15 @@ export function GroupSettingsForm({
   initialSelectedParticipants,
   onSubmit,
   onCancel,
+  addUserToGroup,
 }: GroupSettingsFormProps) {
   const [name, setName] = useState(group.name);
   const [currency, setCurrency] = useState(group.currency || "USD");
-  const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>(
-    initialSelectedParticipants
-  );
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState<
+    string[]
+  >(initialSelectedParticipants);
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
+  const [newParticipantName, setNewParticipantName] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,10 +66,20 @@ export function GroupSettingsForm({
     });
   };
 
+  const handleAddParticipant = async () => {
+    if (newParticipantName.trim() !== "") {
+      await addUserToGroup(newParticipantName, group._id);
+      setNewParticipantName("");
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:w-1/2">
       <div>
-        <label htmlFor="group-name" className="block text-sm font-medium text-foreground mb-1">
+        <label
+          htmlFor="group-name"
+          className="block text-sm font-medium text-foreground mb-1"
+        >
           Group Name
         </label>
         <Input
@@ -81,7 +94,10 @@ export function GroupSettingsForm({
         )}
       </div>
       <div>
-        <label htmlFor="currency" className="block text-sm font-medium text-foreground mb-1">
+        <label
+          htmlFor="currency"
+          className="block text-sm font-medium text-foreground mb-1"
+        >
           Currency
         </label>
         <Combobox
@@ -100,7 +116,9 @@ export function GroupSettingsForm({
         )}
       </div>
       <div>
-        <h3 className="text-lg font-medium text-foreground mb-2">Participants</h3>
+        <h3 className="text-lg font-medium text-foreground mb-2">
+          Participants
+        </h3>
         <MultiSelect
           options={allParticipants.map((p) => ({
             value: p._id,
@@ -109,6 +127,25 @@ export function GroupSettingsForm({
           selected={selectedParticipantIds}
           onChange={setSelectedParticipantIds}
         />
+      </div>
+      <div className="flex items-end space-x-2">
+        <div className="flex-grow">
+          <label
+            htmlFor="new-participant"
+            className="block text-sm font-medium text-foreground mb-1"
+          >
+            Add New Participant
+          </label>
+          <Input
+            id="new-participant"
+            value={newParticipantName}
+            onChange={(e) => setNewParticipantName(e.target.value)}
+            placeholder="Participant name"
+          />
+        </div>
+        <Button type="button" onClick={handleAddParticipant}>
+          Add
+        </Button>
       </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>

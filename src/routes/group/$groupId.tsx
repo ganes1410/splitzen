@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter, Outlet } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { GroupSettingsForm } from "@/components/group-settings-form";
 import { ExpenseForm } from "@/components/expense-form";
 import { SettleForm } from "@/components/settle-form";
 import { Settings, ChevronDown, ChevronRight, Copy } from "lucide-react";
@@ -55,8 +54,6 @@ function GroupPage() {
   const createSettlement = useMutation(api.settlements.create);
   const deleteGroup = useMutation(api.groups.deleteGroup);
   const deleteExpense = useMutation(api.expenses.deleteExpense);
-  const updateGroup = useMutation(api.groups.update);
-  const updateGroupMembers = useMutation(api.groups.updateGroupMembers);
   const createExpense = useMutation(api.expenses.create);
   const updateExpense = useMutation(api.expenses.update);
 
@@ -68,7 +65,6 @@ function GroupPage() {
   const [expenseToDelete, setExpenseToDelete] = useState<Id<"expenses"> | null>(
     null
   );
-  const [showSettings, setShowSettings] = useState(false);
   const [showExpenseDialog, setShowExpenseDialog] = useState(false);
   const [currentExpense, setCurrentExpense] = useState<Expense | undefined>(
     undefined
@@ -140,38 +136,18 @@ function GroupPage() {
           >
             Delete Group
           </Button>
-          <Dialog open={showSettings} onOpenChange={setShowSettings}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Settings className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Group Settings</DialogTitle>
-              </DialogHeader>
-              {group && users && (
-                <GroupSettingsForm
-                  group={group}
-                  allParticipants={users}
-                  initialSelectedParticipants={users.map((u) => u._id)}
-                  onSubmit={async (data) => {
-                    await updateGroup({
-                      groupId: group._id,
-                      name: data.name,
-                      currency: data.currency,
-                    });
-                    await updateGroupMembers({
-                      groupId: group._id,
-                      selectedParticipantIds: data.selectedParticipantIds,
-                    });
-                    setShowSettings(false);
-                  }}
-                  onCancel={() => setShowSettings(false)}
-                />
-              )}
-            </DialogContent>
-          </Dialog>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() =>
+              router.navigate({
+                to: "/settings/$groupId",
+                params: { groupId },
+              })
+            }
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
           <Dialog open={showExpenseDialog} onOpenChange={setShowExpenseDialog}>
             <DialogContent>
               <DialogHeader>
@@ -228,8 +204,6 @@ function GroupPage() {
           )}
         </Button>
       </div>
-
-      <Outlet />
 
       <section className="space-y-4 border-t mt-8 pt-4">
         <h2 className="text-2xl font-bold text-primary">Expenses</h2>

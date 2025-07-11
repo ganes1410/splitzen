@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsGroupIdRouteImport } from './routes/settings.$groupId'
 import { Route as JoinInviteCodeRouteImport } from './routes/join/$inviteCode'
 import { Route as GroupGroupIdRouteImport } from './routes/group/$groupId'
 
@@ -22,6 +23,11 @@ const NewRoute = NewRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsGroupIdRoute = SettingsGroupIdRouteImport.update({
+  id: '/settings/$groupId',
+  path: '/settings/$groupId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinInviteCodeRoute = JoinInviteCodeRouteImport.update({
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/new': typeof NewRoute
   '/group/$groupId': typeof GroupGroupIdRoute
   '/join/$inviteCode': typeof JoinInviteCodeRoute
+  '/settings/$groupId': typeof SettingsGroupIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/new': typeof NewRoute
   '/group/$groupId': typeof GroupGroupIdRoute
   '/join/$inviteCode': typeof JoinInviteCodeRoute
+  '/settings/$groupId': typeof SettingsGroupIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,30 @@ export interface FileRoutesById {
   '/new': typeof NewRoute
   '/group/$groupId': typeof GroupGroupIdRoute
   '/join/$inviteCode': typeof JoinInviteCodeRoute
+  '/settings/$groupId': typeof SettingsGroupIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/new' | '/group/$groupId' | '/join/$inviteCode'
+  fullPaths:
+    | '/'
+    | '/new'
+    | '/group/$groupId'
+    | '/join/$inviteCode'
+    | '/settings/$groupId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/new' | '/group/$groupId' | '/join/$inviteCode'
-  id: '__root__' | '/' | '/new' | '/group/$groupId' | '/join/$inviteCode'
+  to:
+    | '/'
+    | '/new'
+    | '/group/$groupId'
+    | '/join/$inviteCode'
+    | '/settings/$groupId'
+  id:
+    | '__root__'
+    | '/'
+    | '/new'
+    | '/group/$groupId'
+    | '/join/$inviteCode'
+    | '/settings/$groupId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +92,7 @@ export interface RootRouteChildren {
   NewRoute: typeof NewRoute
   GroupGroupIdRoute: typeof GroupGroupIdRoute
   JoinInviteCodeRoute: typeof JoinInviteCodeRoute
+  SettingsGroupIdRoute: typeof SettingsGroupIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -83,6 +109,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/$groupId': {
+      id: '/settings/$groupId'
+      path: '/settings/$groupId'
+      fullPath: '/settings/$groupId'
+      preLoaderRoute: typeof SettingsGroupIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join/$inviteCode': {
@@ -107,6 +140,7 @@ const rootRouteChildren: RootRouteChildren = {
   NewRoute: NewRoute,
   GroupGroupIdRoute: GroupGroupIdRoute,
   JoinInviteCodeRoute: JoinInviteCodeRoute,
+  SettingsGroupIdRoute: SettingsGroupIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

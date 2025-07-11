@@ -10,6 +10,21 @@ export const create = mutation({
   },
 });
 
+export const addUserToGroup = mutation({
+  args: { name: v.string(), groupId: v.id("groups") },
+  handler: async (ctx, args) => {
+    const userId = Math.random().toString(36).substring(2, 15);
+    const userRecordId = await ctx.db.insert("users", { name: args.name, userId });
+
+    await ctx.db.insert("members", {
+      userId: userRecordId,
+      groupId: args.groupId,
+    });
+
+    return { userId, userRecordId };
+  },
+});
+
 export const join = mutation({
   args: {
     name: v.string(),
