@@ -17,7 +17,7 @@ import {
 import { GroupSettingsForm } from "@/components/group-settings-form";
 import { ExpenseForm } from "@/components/expense-form";
 import { SettleForm } from "@/components/settle-form";
-import { Settings, ChevronDown, ChevronRight } from "lucide-react";
+import { Settings, ChevronDown, ChevronRight, Copy } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
 
 export const Route = createFileRoute("/group/$groupId")({
@@ -76,6 +76,7 @@ function GroupPage() {
   const [expandedExpenseIds, setExpandedExpenseIds] = useState<
     Id<"expenses">[]
   >([]);
+  const [copied, setCopied] = useState(false);
 
   const handleDeleteGroup = async () => {
     await deleteGroup({ groupId: groupId as Id<"groups"> });
@@ -92,6 +93,14 @@ function GroupPage() {
       await deleteExpense({ expenseId: expenseToDelete });
       setExpenseToDelete(null);
       setShowDeleteExpenseConfirm(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (group?.inviteCode) {
+      navigator.clipboard.writeText(group.inviteCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -201,12 +210,24 @@ function GroupPage() {
         </div>
       </div>
 
-      <p className="text-lg text-muted-foreground">
+      <div className="text-md text-muted-foreground flex items-center">
         Invite Code:{" "}
-        <span className="font-semibold text-foreground">
+        <span className="font-semibold text-foreground ml-2">
           {group?.inviteCode}
         </span>
-      </p>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleCopy}
+          className="ml-2 h-8 w-8"
+        >
+          {copied ? (
+            <span className="text-xs">Copied</span>
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
 
       <Outlet />
 

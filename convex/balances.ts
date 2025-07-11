@@ -1,4 +1,3 @@
-
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -30,15 +29,15 @@ export const getBalances = query({
       .filter((q) => q.eq(q.field("groupId"), args.groupId))
       .collect();
 
-    const users = (await Promise.all(
-      members.map((member) => ctx.db.get(member.userId))
-    )).filter(Boolean);
+    const users = (
+      await Promise.all(members.map((member) => ctx.db.get(member.userId)))
+    ).filter(Boolean);
 
     const balances: { [userId: string]: number } = {};
-    users.forEach(user => {
-        if (user) {
-            balances[user._id] = 0;
-        }
+    users.forEach((user) => {
+      if (user) {
+        balances[user._id] = 0;
+      }
     });
 
     expenses.forEach((expense) => {
@@ -54,7 +53,12 @@ export const getBalances = query({
       balances[settlement.to] -= settlement.amount;
     });
 
-    const allTransactions: { from: string; to: string; amount: number; currency: string }[] = [];
+    const allTransactions: {
+      from: string;
+      to: string;
+      amount: number;
+      currency: string;
+    }[] = [];
 
     const positiveBalances: { userId: string; amount: number }[] = [];
     const negativeBalances: { userId: string; amount: number }[] = [];
@@ -62,9 +66,11 @@ export const getBalances = query({
     const EPSILON = 0.0001; // A small value to account for floating-point inaccuracies
 
     for (const userId in balances) {
-      if (balances[userId] > EPSILON) { // Check if significantly positive
+      if (balances[userId] > EPSILON) {
+        // Check if significantly positive
         positiveBalances.push({ userId, amount: balances[userId] });
-      } else if (balances[userId] < -EPSILON) { // Check if significantly negative
+      } else if (balances[userId] < -EPSILON) {
+        // Check if significantly negative
         negativeBalances.push({ userId, amount: -balances[userId] });
       }
       // If balance is between -EPSILON and EPSILON, treat as zero and ignore
