@@ -118,3 +118,18 @@ export const getMembership = query({
     return membership;
   },
 });
+
+export const removeUserFromGroup = mutation({
+  args: { userId: v.id("users"), groupId: v.id("groups") },
+  handler: async (ctx, args) => {
+    const membership = await ctx.db
+      .query("members")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
+      .unique();
+
+    if (membership) {
+      await ctx.db.delete(membership._id);
+    }
+  },
+});

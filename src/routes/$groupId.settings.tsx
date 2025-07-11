@@ -22,6 +22,7 @@ function GroupSettingsPage() {
   const updateGroup = useMutation(api.groups.update);
   const updateGroupMembers = useMutation(api.groups.updateGroupMembers);
   const addUserToGroup = useMutation(api.users.addUserToGroup);
+  const removeUserFromGroup = useMutation(api.users.removeUserFromGroup);
 
   if (!group || !users) {
     return <div>Loading...</div>;
@@ -65,6 +66,9 @@ function GroupSettingsPage() {
         }
         addUserToGroup={async (name) => {
           await addUserToGroup({ name, groupId: groupId as Id<"groups"> });
+        }}
+        removeUserFromGroup={async (userId, groupId) => {
+          await removeUserFromGroup({ userId, groupId });
         }}
       />
     </div>

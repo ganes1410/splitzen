@@ -6,6 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { currencies } from "@/lib/currencies";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Combobox } from "@/components/ui/combobox";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface GroupSettingsFormProps {
   group: {
@@ -25,6 +26,7 @@ interface GroupSettingsFormProps {
   }) => void;
   onCancel: () => void;
   addUserToGroup: (name: string, groupId: Id<"groups">) => Promise<any>;
+  removeUserFromGroup: (userId: Id<"users">, groupId: Id<"groups">) => Promise<any>;
 }
 
 const groupSettingsSchema = z.object({
@@ -39,6 +41,7 @@ export function GroupSettingsForm({
   onSubmit,
   onCancel,
   addUserToGroup,
+  removeUserFromGroup,
 }: GroupSettingsFormProps) {
   const [name, setName] = useState(group.name);
   const [currency, setCurrency] = useState(group.currency || "USD");
@@ -47,6 +50,8 @@ export function GroupSettingsForm({
   >(initialSelectedParticipants);
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
   const [newParticipantName, setNewParticipantName] = useState("");
+  const [showRemoveParticipantConfirm, setShowRemoveParticipantConfirm] = useState(false);
+  const [participantToRemove, setParticipantToRemove] = useState<Id<"users"> | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,8 +73,23 @@ export function GroupSettingsForm({
 
   const handleAddParticipant = async () => {
     if (newParticipantName.trim() !== "") {
-      await addUserToGroup(newParticipantName, group._id);
+      const { userRecordId } = await addUserToGroup(newParticipantName, group._id);
+      setSelectedParticipantIds((prev) => [...prev, userRecordId as Id<"users">]);
       setNewParticipantName("");
+    }
+  };
+
+  const handleRemoveParticipant = (userId: string) => {
+    setParticipantToRemove(userId as Id<"users">);
+    setShowRemoveParticipantConfirm(true);
+  };
+
+  const confirmRemoveParticipant = async () => {
+    if (participantToRemove) {
+      await removeUserFromGroup(participantToRemove, group._id);
+      setSelectedParticipantIds(selectedParticipantIds.filter(id => id !== participantToRemove));
+      setParticipantToRemove(null);
+      setShowRemoveParticipantConfirm(false);
     }
   };
 
@@ -126,6 +146,7 @@ export function GroupSettingsForm({
           }))}
           selected={selectedParticipantIds}
           onChange={setSelectedParticipantIds}
+          onRemove={handleRemoveParticipant}
         />
       </div>
       <div className="flex items-end space-x-2">
@@ -153,6 +174,15 @@ export function GroupSettingsForm({
         </Button>
         <Button type="submit">Save Changes</Button>
       </div>
+
+      <ConfirmDialog
+        open={showRemoveParticipantConfirm}
+        onOpenChange={setShowRemoveParticipantConfirm}
+        title="Remove Participant"
+        description="Are you sure you want to remove this participant from the group? This will not delete their past expenses, but they will no longer be able to add new ones."
+        onConfirm={confirmRemoveParticipant}
+        confirmText="Remove"
+      />
     </form>
   );
 }
