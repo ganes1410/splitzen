@@ -22,6 +22,8 @@ export function createRouter() {
     defaultStructuralSharing: true,
     defaultPreloadStaleTime: 0,
     defaultViewTransition: true,
+    defaultNotFoundComponent: () => <div>Not Found</div>,
+    defaultErrorComponent: () => <div>Error occurred</div>,
     Wrap: ({ children }) => (
       <ConvexProvider client={convexReactClient}>{children}</ConvexProvider>
     ),
