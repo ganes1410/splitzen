@@ -1,18 +1,24 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { GroupSettingsForm } from "@/components/group-settings-form";
+import { ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/settings/$groupId")({
+export const Route = createFileRoute("/$groupId/settings")({
   component: GroupSettingsPage,
 });
 
 function GroupSettingsPage() {
   const { groupId } = Route.useParams();
   const router = useRouter();
-  const group = useQuery(api.groups.getGroup, { groupId: groupId as Id<"groups"> });
-  const users = useQuery(api.users.getUsersInGroup, { groupId: groupId as Id<"groups"> });
+  const group = useQuery(api.groups.getGroup, {
+    groupId: groupId as Id<"groups">,
+  });
+  const users = useQuery(api.users.getUsersInGroup, {
+    groupId: groupId as Id<"groups">,
+  });
   const updateGroup = useMutation(api.groups.update);
   const updateGroupMembers = useMutation(api.groups.updateGroupMembers);
   const addUserToGroup = useMutation(api.users.addUserToGroup);
@@ -23,6 +29,18 @@ function GroupSettingsPage() {
 
   return (
     <div className="flex flex-col sm:ml-40 px-3">
+      <div className="flex items-center mb-4">
+        <Link
+          to="/group/$groupId"
+          params={{ groupId }}
+          className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Button variant="ghost" size="sm" className="px-2">
+            <ChevronLeft className="h-5 w-5" />
+            <span className="text-lg font-medium">Back to {group?.name}</span>
+          </Button>
+        </Link>
+      </div>
       <h1 className="text-3xl font-bold mb-4 text-primary">
         {group?.name} - Settings
       </h1>
@@ -52,4 +70,3 @@ function GroupSettingsPage() {
     </div>
   );
 }
-

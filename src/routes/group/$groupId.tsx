@@ -154,7 +154,7 @@ function GroupPage() {
             size="icon"
             onClick={() =>
               router.navigate({
-                to: "/settings/$groupId",
+                to: "/$groupId/settings",
                 params: { groupId },
               })
             }
