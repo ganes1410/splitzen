@@ -1,4 +1,4 @@
-import { Outlet, createRootRoute, Link } from "@tanstack/react-router";
+import { Outlet, createRootRoute, Link, useRouterState } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import {
   Sidebar,
@@ -52,6 +52,10 @@ const RootLayout = () => {
     api.groups.getGroupsForUser,
     userId === null ? "skip" : { userId }
   );
+  const routerState = useRouterState();
+  const currentGroupId = routerState.location.pathname.startsWith("/group/")
+    ? routerState.location.pathname.split("/")[2]
+    : null;
 
   return (
     <SidebarProvider>
@@ -78,7 +82,7 @@ const RootLayout = () => {
                   ) : userId && groups && groups.length > 0 ? (
                     groups.map((group) => (
                       <SidebarMenuItem key={group._id}>
-                        <SidebarMenuButton asChild>
+                        <SidebarMenuButton asChild isActive={group._id === currentGroupId}>
                           <Link
                             to="/group/$groupId"
                             params={{ groupId: group._id }}

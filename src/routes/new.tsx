@@ -30,10 +30,12 @@ function CreateGroup() {
   const [userName, setUserName] = useState("");
   const [currency, setCurrency] = useState("INR");
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors(null);
+    setLoading(true);
     const isUserPresent = Boolean(localStorage.getItem("userId"));
 
     const result = isUserPresent
@@ -46,6 +48,7 @@ function CreateGroup() {
 
     if (!result.success) {
       setErrors(result.error.issues);
+      setLoading(false);
       return;
     }
 
@@ -67,6 +70,8 @@ function CreateGroup() {
       setErrors([
         { message: "Failed to create group. Please try again." } as z.ZodIssue,
       ]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,6 +98,7 @@ function CreateGroup() {
             onChange={(e) => setGroupName(e.target.value)}
             placeholder="e.g., Japan Trip 2025"
             className="w-full"
+            disabled={loading}
           />
           {errors?.find((e) => e.path[0] === "groupName") && (
             <p className="text-destructive text-sm mt-1">
@@ -115,6 +121,7 @@ function CreateGroup() {
               onChange={(e) => setUserName(e.target.value)}
               placeholder="e.g., Alice"
               className="w-full"
+              disabled={loading}
             />
             {errors?.find((e) => e.path[0] === "userName") && (
               <p className="text-destructive text-sm mt-1">
@@ -151,8 +158,8 @@ function CreateGroup() {
           ) && (
             <p className="text-destructive text-sm mt-1">{errors[0].message}</p>
           )}
-        <Button type="submit" className="w-full">
-          Create Group
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Creating..." : "Create Group"}
         </Button>
       </form>
     </div>

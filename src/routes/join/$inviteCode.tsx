@@ -20,6 +20,7 @@ function JoinGroup() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const group = useQuery(api.groups.getGroupbyInviteCode, { inviteCode });
   const userId = localStorage.getItem("userId");
@@ -36,11 +37,13 @@ function JoinGroup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors(null);
+    setLoading(true);
 
     if (!group) {
       setErrors([
         { message: "Invalid invite code. Group not found." } as z.ZodIssue,
       ]);
+      setLoading(false);
       return;
     }
 
@@ -48,6 +51,7 @@ function JoinGroup() {
 
     if (!result.success) {
       setErrors(result.error.issues);
+      setLoading(false);
       return;
     }
 
@@ -72,6 +76,8 @@ function JoinGroup() {
           message: errorMessage,
         } as z.ZodIssue,
       ]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -141,6 +147,7 @@ function JoinGroup() {
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g., Bob"
             className="w-full"
+            disabled={loading}
           />
           {errors?.find((e) => e.path[0] === "name") && (
             <p className="text-destructive text-sm mt-1">
@@ -151,8 +158,8 @@ function JoinGroup() {
         {errors && !errors.some((e) => e.path[0] === "name") && (
           <p className="text-destructive text-sm mt-1">{errors[0].message}</p>
         )}
-        <Button type="submit" className="w-full">
-          Join
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Joining..." : "Join"}
         </Button>
       </form>
     </div>

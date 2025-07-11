@@ -35,12 +35,6 @@ function GroupPage() {
   const group = useQuery(api.groups.getGroup, {
     groupId: groupId as Id<"groups">,
   });
-
-  // Redirect if group is not found (e.g., deleted)
-  if (group === null) {
-    router.navigate({ to: "/" });
-    return null; // Or a loading/error state if preferred
-  }
   const expenses = useQuery(api.expenses.getExpensesInGroup, {
     groupId: groupId as Id<"groups">,
   });
@@ -58,7 +52,6 @@ function GroupPage() {
   const updateExpense = useMutation(api.expenses.update);
 
   const [showSettleForm, setShowSettleForm] = useState(false);
-
   const [showDeleteGroupConfirm, setShowDeleteGroupConfirm] = useState(false);
   const [showDeleteExpenseConfirm, setShowDeleteExpenseConfirm] =
     useState(false);
@@ -73,6 +66,26 @@ function GroupPage() {
     Id<"expenses">[]
   >([]);
   const [copied, setCopied] = useState(false);
+
+  // Loading state
+  if (
+    group === undefined ||
+    expenses === undefined ||
+    users === undefined ||
+    balances === undefined
+  ) {
+    return (
+      <div className="flex flex-col sm:ml-40 px-3 py-4">
+        Loading group data...
+      </div>
+    );
+  }
+
+  // Redirect if group is not found (e.g., deleted)
+  if (group === null) {
+    router.navigate({ to: "/" });
+    return null; // Or a loading/error state if preferred
+  }
 
   const handleDeleteGroup = async () => {
     await deleteGroup({ groupId: groupId as Id<"groups"> });
@@ -208,7 +221,9 @@ function GroupPage() {
       <section className="space-y-4 border-t mt-8 pt-4">
         <h2 className="text-2xl font-bold text-primary">Expenses</h2>
         {expenses?.length === 0 ? (
-          <p className="text-muted-foreground">No expenses yet.</p>
+          <div className="text-muted-foreground">
+            <p className="mb-2">No expenses yet.</p>
+          </div>
         ) : (
           <ul className="space-y-3">
             {expenses?.map((expense) => (
@@ -305,7 +320,9 @@ function GroupPage() {
       <section className="space-y-4 border-t mt-8 pt-4">
         <h2 className="text-2xl font-bold text-primary">Balances</h2>
         {balances?.length === 0 ? (
-          <p className="text-muted-foreground">No outstanding balances.</p>
+          <p className="text-muted-foreground">
+            All settled up! No outstanding balances in this group.
+          </p>
         ) : (
           <ul className="space-y-3">
             {balances?.map((balance, index) => (
@@ -334,7 +351,7 @@ function GroupPage() {
       <section className="space-y-4 mt-8 pt-4">
         <Dialog open={showSettleForm} onOpenChange={setShowSettleForm}>
           <DialogTrigger asChild>
-            <Button className="w-full">Settle Up</Button>
+            <Button className="w-1/2">Settle Up</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
