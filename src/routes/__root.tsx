@@ -33,7 +33,15 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <Outlet />
+      <div className="grid grid-cols-9 gap-10">
+        <div className="col-span-1">
+          <AppSidebar />
+        </div>
+
+        <div className="col-span-8">
+          <Outlet />
+        </div>
+      </div>
       <TanStackRouterDevtools position="bottom-right" />
     </RootDocument>
   );
@@ -64,7 +72,6 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         />
       </head>
       <body>
-        <AppSidebar />
         {children}
         <Scripts />
       </body>

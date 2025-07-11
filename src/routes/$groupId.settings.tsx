@@ -29,7 +29,7 @@ function GroupSettingsPage() {
   }
 
   return (
-    <div className="flex flex-col sm:ml-40 px-3">
+    <div className="flex flex-col sm:ml-30 px-3 py-6">
       <div className="flex items-center mb-4">
         <Link
           to="/group/$groupId"

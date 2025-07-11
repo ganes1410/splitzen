@@ -131,7 +131,7 @@ function GroupPage() {
   };
 
   return (
-    <div className="flex flex-col sm:ml-40 px-3">
+    <div className="flex flex-col sm:ml-30 px-3 py-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-primary">{group?.name}</h1>
         <div className="flex space-x-2">

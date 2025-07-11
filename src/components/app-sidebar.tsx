@@ -27,7 +27,7 @@ const AppHeader = () => {
   if (!isMobile) return null;
 
   return (
-    <div className="flex items-center justify-between border-b bg-background p-4 md:hidden">
+    <div className="flex items-center justify-between border-b bg-background w-full p-4 md:hidden ">
       <Link to="/" className="flex items-center gap-2">
         <HomeIcon className="h-6 w-6 text-primary" />
         <h2 className="text-xl font-bold text-foreground">Splitzen</h2>
@@ -133,11 +133,6 @@ const AppSidebar = () => {
 
         <SidebarInset className="flex-1">
           <AppHeader />
-          <div className="flex h-full w-full flex-col">
-            <main className="flex-1 p-6">
-              <Outlet />
-            </main>
-          </div>
         </SidebarInset>
       </div>
     </SidebarProvider>
