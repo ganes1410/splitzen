@@ -27,7 +27,7 @@ const AppHeader = () => {
   if (!isMobile) return null;
 
   return (
-    <div className="flex items-center justify-between border-b bg-background w-full p-4 md:hidden ">
+    <div className="sticky top-0 left-0 right-0 z-10 flex items-center justify-between border-b bg-background w-full p-4 md:hidden ">
       <Link to="/" className="flex items-center gap-2">
         <HomeIcon className="h-6 w-6 text-primary" />
         <h2 className="text-xl font-bold text-foreground">Splitzen</h2>
@@ -45,7 +45,7 @@ const AppHeader = () => {
   );
 };
 
-const AppSidebar = () => {
+const AppSidebar = ({ children }: { children: React.ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -131,8 +131,9 @@ const AppSidebar = () => {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1  md:pt-0">
           <AppHeader />
+          <main className="flex-1 p-6">{children}</main>
         </SidebarInset>
       </div>
     </SidebarProvider>

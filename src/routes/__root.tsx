@@ -33,15 +33,9 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <div className="grid grid-cols-9 gap-10">
-        <div className="col-span-1">
-          <AppSidebar />
-        </div>
-
-        <div className="col-span-8">
-          <Outlet />
-        </div>
-      </div>
+      <AppSidebar>
+        <Outlet />
+      </AppSidebar>
       <TanStackRouterDevtools position="bottom-right" />
     </RootDocument>
   );

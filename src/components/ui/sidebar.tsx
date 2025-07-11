@@ -136,7 +136,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-4"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -199,9 +199,9 @@ function Sidebar({
   );
 }
 
-function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
+function SidebarInset({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <main
+    <div
       data-slot="sidebar-inset"
       className={cn(
         "bg-background relative flex w-full flex-1 flex-col",
