@@ -298,7 +298,7 @@ function GroupPage() {
                 {expandedExpenseIds.includes(expense._id) && (
                   <div className="mt-4 pt-4 border-t border-dashed">
                     <h4 className="text-md font-semibold mb-2">
-                      Split Details:
+                      Split Details
                     </h4>
                     <ul className="space-y-1">
                       {expense.splitAmong.map((userId) => {
@@ -308,10 +308,11 @@ function GroupPage() {
                         return (
                           <li
                             key={userId}
-                            className="flex justify-between text-sm text-muted-foreground"
+                            className="flextext-sm text-muted-foreground"
                           >
-                            <span>{user?.name || "Unknown"}</span>
+                            <span>{user?.name || "Unknown"} </span>
                             <span>
+                              {" - "}
                               {getCurrencySymbol(group?.currency)}
                               {share.toFixed(2)}
                             </span>

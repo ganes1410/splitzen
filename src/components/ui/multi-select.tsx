@@ -53,7 +53,8 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
           {options.map((option) => (
             <DropdownMenuItem
               key={option.value}
-              onSelect={() => handleSelect(option.value)}
+              onSelect={(e) => e.preventDefault()}
+              onClick={() => handleSelect(option.value)}
               className="flex items-center"
             >
               <Checkbox
