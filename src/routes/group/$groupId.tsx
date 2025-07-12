@@ -1,11 +1,12 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 
 type Expense = Doc<"expenses">;
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   Dialog,
@@ -18,9 +19,14 @@ import { ExpenseForm } from "@/components/expense-form";
 import { SettleForm } from "@/components/settle-form";
 import { Settings, ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
+import z from "zod";
 
 export const Route = createFileRoute("/group/$groupId")({
   component: GroupPage,
+  validateSearch: z.object({
+    sortBy: z.string().optional().default("date"),
+    filterBy: z.string().optional().default(""),
+  }),
   loader: async ({ params }) => {
     return { groupId: params.groupId } as { groupId: Id<"groups"> };
   },
@@ -32,7 +38,6 @@ export const Route = createFileRoute("/group/$groupId")({
 function GroupHeader({
   group,
   groupId,
-  router,
   setShowExpenseDialog,
   setCurrentExpense,
   setShowDeleteGroupConfirm,
@@ -43,7 +48,7 @@ function GroupHeader({
 }: {
   group: Doc<"groups"> | null;
   groupId: string;
-  router: any;
+
   setShowExpenseDialog: (show: boolean) => void;
   setCurrentExpense: (expense: Expense | undefined) => void;
   setShowDeleteGroupConfirm: (show: boolean) => void;
@@ -53,6 +58,7 @@ function GroupHeader({
   const [copied, setCopied] = useState(false);
   const createExpense = useMutation(api.expenses.create);
   const updateExpense = useMutation(api.expenses.update);
+  const router = useRouter();
 
   const handleCopy = () => {
     if (group?.inviteCode) {
@@ -163,6 +169,10 @@ function ExpensesSection({
   handleDeleteExpense,
   setCurrentExpense,
   setShowExpenseDialog,
+  sortBy,
+  filterBy,
+  setSortBy,
+  setFilterBy,
 }: {
   expenses: Expense[] | undefined;
   group: Doc<"groups"> | null;
@@ -170,6 +180,10 @@ function ExpensesSection({
   handleDeleteExpense: (expenseId: Id<"expenses">) => void;
   setCurrentExpense: (expense: Expense) => void;
   setShowExpenseDialog: (show: boolean) => void;
+  sortBy: string;
+  filterBy: string;
+  setSortBy: (sortBy: string) => void;
+  setFilterBy: (filterBy: string) => void;
 }) {
   const [expandedExpenseIds, setExpandedExpenseIds] = useState<
     Id<"expenses">[]
@@ -179,16 +193,58 @@ function ExpensesSection({
     return users?.find((user) => user._id === userId)?.name || "Unknown";
   };
 
+  const sortedAndFilteredExpenses = useMemo(() => {
+    let filtered = expenses;
+    if (filterBy) {
+      filtered = expenses?.filter((expense) =>
+        expense.description.toLowerCase().includes(filterBy.toLowerCase())
+      );
+    }
+
+    if (!filtered) return [];
+
+    return filtered.sort((a, b) => {
+      if (sortBy === "date") {
+        return (
+          new Date(b.date as string).getTime() -
+          new Date(a.date as string).getTime()
+        );
+      } else if (sortBy === "amount") {
+        return b.amount - a.amount;
+      }
+      return 0;
+    });
+  }, [expenses, sortBy, filterBy]);
+
   return (
     <section className="space-y-4 border-t mt-4 pt-4">
-      <h2 className="text-2xl font-bold text-primary">Expenses</h2>
-      {expenses?.length === 0 ? (
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold text-primary">Expenses</h2>
+        <div className="flex gap-6 ">
+          <Input
+            type="text"
+            placeholder="Filter by description..."
+            value={filterBy}
+            onChange={(e) => setFilterBy(e.target.value)}
+            className="w-48 h-auto"
+          />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="flex h-10 w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="date">Sort by Date</option>
+            <option value="amount">Sort by Amount</option>
+          </select>
+        </div>
+      </div>
+      {sortedAndFilteredExpenses?.length === 0 ? (
         <div className="text-muted-foreground">
           <p className="mb-2">No expenses yet.</p>
         </div>
       ) : (
         <ul className="space-y-3">
-          {expenses?.map((expense) => (
+          {sortedAndFilteredExpenses?.map((expense) => (
             <li
               key={expense._id}
               className="p-4 border rounded-lg shadow-sm flex flex-col bg-card"
@@ -254,18 +310,17 @@ function ExpensesSection({
               {expandedExpenseIds.includes(expense._id) && (
                 <div className="mt-4 pt-4 border-t border-dashed">
                   <h4 className="text-md font-semibold mb-2">Split Details</h4>
-                  <ul className="space-y-1">
+                  <ul className="flex flex-col gap-2">
                     {expense.splitAmong.map((userId) => {
                       const user = users?.find((u) => u._id === userId);
                       const share = expense.amount / expense.splitAmong.length;
                       return (
                         <li
                           key={userId}
-                          className="flex text-sm text-muted-foreground"
+                          className="flex items-center text-sm text-muted-foreground w-50 justify-between"
                         >
                           <span>{user?.name || "Unknown"} </span>
-                          <span>
-                            {" - "}
+                          <span className="text-primary font-semibold ml-3">
                             {getCurrencySymbol(group?.currency)}
                             {share.toFixed(2)}
                           </span>
@@ -363,6 +418,29 @@ function BalancesSection({
 function GroupPage() {
   const { groupId } = Route.useParams();
   const router = useRouter();
+  const { sortBy, filterBy } = Route.useSearch();
+
+  const setSortBy = (newSortBy: string) => {
+    router.navigate({
+      to: `/group/${groupId}`,
+      search: (prev) => ({
+        ...prev,
+        sortBy: newSortBy,
+      }),
+      replace: true,
+    });
+  };
+
+  const setFilterBy = (newFilterBy: string) => {
+    router.navigate({
+      to: `/group/${groupId}`,
+      search: (prev) => ({
+        ...prev,
+        filterBy: newFilterBy,
+      }),
+      replace: true,
+    });
+  };
   const group = useQuery(api.groups.getGroup, {
     groupId: groupId as Id<"groups">,
   });
@@ -456,7 +534,6 @@ function GroupPage() {
       <GroupHeader
         group={group}
         groupId={groupId}
-        router={router}
         setShowExpenseDialog={setShowExpenseDialog}
         setCurrentExpense={setCurrentExpense}
         setShowDeleteGroupConfirm={setShowDeleteGroupConfirm}
@@ -471,6 +548,10 @@ function GroupPage() {
         handleDeleteExpense={handleDeleteExpense}
         setCurrentExpense={setCurrentExpense}
         setShowExpenseDialog={setShowExpenseDialog}
+        sortBy={sortBy}
+        filterBy={filterBy}
+        setSortBy={setSortBy}
+        setFilterBy={setFilterBy}
       />
 
       <BalancesSection

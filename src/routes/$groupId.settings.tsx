@@ -34,6 +34,10 @@ function GroupSettingsPage() {
         <Link
           to="/group/$groupId"
           params={{ groupId }}
+          search={{
+            sortBy: "date",
+            filterBy: "",
+          }}
           className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
         >
           <Button variant="ghost" size="sm" className="px-2">
@@ -59,10 +63,24 @@ function GroupSettingsPage() {
             groupId: group._id,
             selectedParticipantIds: data.selectedParticipantIds,
           });
-          router.navigate({ to: "/group/$groupId", params: { groupId } });
+          router.navigate({
+            to: "/group/$groupId",
+            params: { groupId },
+            search: {
+              sortBy: "date",
+              filterBy: "",
+            },
+          });
         }}
         onCancel={() =>
-          router.navigate({ to: "/group/$groupId", params: { groupId } })
+          router.navigate({
+            to: "/group/$groupId",
+            params: { groupId },
+            search: {
+              sortBy: "date",
+              filterBy: "",
+            },
+          })
         }
         addUserToGroup={async (name) => {
           return await addUserToGroup({

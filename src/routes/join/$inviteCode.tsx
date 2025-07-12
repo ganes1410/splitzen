@@ -114,7 +114,7 @@ function JoinGroup() {
           You are already a member of the group "{group.name}".
         </p>
         <Button asChild>
-          <Link to="/group/$groupId" params={{ groupId: group._id }}>Go to Group</Link>
+          <Link to="/group/$groupId" params={{ groupId: group._id }} search={{ sortBy: "date", filterBy: "" }}>Go to Group</Link>
         </Button>
       </div>
     );

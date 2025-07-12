@@ -53,15 +53,17 @@ export const getBalances = query({
       balances[settlement.to] -= settlement.amount;
     });
 
+    import type { Id } from "./_generated/dataModel";
+
     const allTransactions: {
-      from: string;
-      to: string;
+      from: Id<"users">;
+      to: Id<"users">;
       amount: number;
       currency: string;
     }[] = [];
 
-    const positiveBalances: { userId: string; amount: number }[] = [];
-    const negativeBalances: { userId: string; amount: number }[] = [];
+    const positiveBalances: { userId: Id<"users">; amount: number }[] = [];
+    const negativeBalances: { userId: Id<"users">; amount: number }[] = [];
 
     const EPSILON = 0.0001; // A small value to account for floating-point inaccuracies
 
