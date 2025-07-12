@@ -13,10 +13,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { ExpenseForm } from "@/components/expense-form";
 import { SettleForm } from "@/components/settle-form";
+import { ExpenseChart } from "@/components/expense-chart";
 import { Settings, ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
 import z from "zod";
@@ -541,6 +541,10 @@ function GroupPage() {
         currentExpense={currentExpense}
       />
 
+      {expenses && group && users && (
+        <ExpenseChart expenses={expenses} group={group} users={users} />
+      )}
+
       <ExpensesSection
         expenses={expenses}
         group={group}
@@ -560,7 +564,6 @@ function GroupPage() {
         setShowSettleForm={setShowSettleForm}
         setPrefillSettleForm={setPrefillSettleForm}
       />
-
       <section className="space-y-4 mt-8 py-4 flex items-center justify-center">
         <Dialog open={showSettleForm} onOpenChange={setShowSettleForm}>
           <DialogContent>

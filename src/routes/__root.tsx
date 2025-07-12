@@ -69,7 +69,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <body>
         {children}
         <Scripts />
-        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+        <Toaster position="top-right" toastOptions={{ duration: 1000 }} />
       </body>
     </html>
   );
