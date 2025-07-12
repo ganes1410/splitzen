@@ -4,15 +4,11 @@ import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import type { Id } from "../../convex/_generated/dataModel";
 import { currencies } from "@/lib/currencies";
-import {
-  createMultiSelect,
-  MultiSelect,
-  MultiSelectOption,
-} from "@/components/ui/multi-select";
+import { createMultiSelect } from "@/components/ui/multi-select";
 import { Combobox } from "@/components/ui/combobox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { useConvex, useQuery } from "convex/react";
+import { useConvex } from "convex/react";
 import { api } from "convex/_generated/api";
 
 interface GroupSettingsFormProps {
@@ -105,7 +101,7 @@ export function GroupSettingsForm({
       );
       setSelectedParticipantIds((prev) => [...prev, userRecordId]);
       setNewParticipantName("");
-      toast.success("Participant added!");
+      toast.success("Participant added successfully!");
     } catch (error) {
       console.error("Failed to add participant:", error);
       toast.error("Failed to add participant. Please try again.");
@@ -126,13 +122,18 @@ export function GroupSettingsForm({
   };
 
   const confirmRemoveParticipant = async () => {
-    if (participantToRemove) {
+    if (!participantToRemove) return;
+    try {
       await removeUserFromGroup(participantToRemove, group._id);
+      toast.success("Participant removed successfully!");
       setSelectedParticipantIds(
         selectedParticipantIds.filter((id) => id !== participantToRemove)
       );
       setParticipantToRemove(null);
       setShowRemoveParticipantConfirm(false);
+    } catch (error) {
+      toast.error("Failed to remove participant. Please try again.");
+      setParticipantToRemove(null);
     }
   };
 

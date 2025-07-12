@@ -1,16 +1,19 @@
 import { Toaster as Sonner, ToasterProps } from "sonner";
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({ toastOptions, ...props }: ToasterProps) => {
   return (
     <Sonner
       className="toaster group"
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-        } as React.CSSProperties
-      }
+      toastOptions={{
+        unstyled: true,
+        classNames: {
+          error: "bg-destructive text-white ",
+          success: "bg-green-900 text-white",
+          toast:
+            "flex items-center gap-2 border-border shadow-sm p-4 rounded-lg",
+        },
+        ...toastOptions,
+      }}
       {...props}
     />
   );
