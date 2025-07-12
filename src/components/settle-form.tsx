@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -13,13 +13,38 @@ interface SettleFormProps {
     note?: string;
   }) => void;
   onCancel: () => void;
+  initialData?: {
+    from: Id<"users">;
+    to: Id<"users">;
+    amount: number;
+  };
 }
 
-export function SettleForm({ users, onSubmit, onCancel }: SettleFormProps) {
-  const [settleFrom, setSettleFrom] = useState("");
-  const [settleTo, setSettleTo] = useState("");
-  const [settleAmount, setSettleAmount] = useState("");
+export function SettleForm({
+  users,
+  onSubmit,
+  onCancel,
+  initialData,
+}: SettleFormProps) {
+  const [settleFrom, setSettleFrom] = useState(initialData?.from || "");
+  const [settleTo, setSettleTo] = useState(initialData?.to || "");
+  const [settleAmount, setSettleAmount] = useState(
+    initialData?.amount.toFixed(2) || ""
+  );
   const [settleNote, setSettleNote] = useState("");
+
+  useEffect(() => {
+    if (initialData) {
+      setSettleFrom(initialData.from);
+      setSettleTo(initialData.to);
+      setSettleAmount(initialData.amount.toFixed(2));
+    } else {
+      setSettleFrom("");
+      setSettleTo("");
+      setSettleAmount("");
+    }
+    setSettleNote("");
+  }, [initialData]);
 
   const handleSettle = async (e: React.FormEvent) => {
     e.preventDefault();

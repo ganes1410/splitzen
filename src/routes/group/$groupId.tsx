@@ -286,9 +286,28 @@ function ExpensesSection({
 function BalancesSection({
   balances,
   users,
+  setShowSettleForm,
+  setPrefillSettleForm,
 }: {
-  balances: any[] | undefined;
+  balances:
+    | {
+        from: string;
+        to: string;
+        amount: number;
+        currency: string;
+      }[]
+    | undefined;
   users: Doc<"users">[] | undefined;
+  setShowSettleForm: (show: boolean) => void;
+  setPrefillSettleForm: (
+    data:
+      | {
+          from: Id<"users">;
+          to: Id<"users">;
+          amount: number;
+        }
+      | undefined
+  ) => void;
 }) {
   const getUserName = (userId: string) => {
     return users?.find((user) => user._id === userId)?.name || "Unknown";
@@ -314,9 +333,24 @@ function BalancesSection({
                 owes{" "}
                 <span className="font-semibold">{getUserName(balance.to)}</span>
               </div>
-              <div className="text-lg font-bold text-primary">
-                {getCurrencySymbol(balance.currency)}
-                {balance.amount.toFixed(2)}
+              <div className="flex items-center gap-3">
+                <div className="text-lg font-bold text-primary">
+                  {getCurrencySymbol(balance.currency)}
+                  {balance.amount.toFixed(2)}
+                </div>
+                <Button
+                  onClick={() => {
+                    setPrefillSettleForm({
+                      from: balance.from as Id<"users">,
+                      to: balance.to as Id<"users">,
+                      amount: balance.amount,
+                    });
+                    setShowSettleForm(true);
+                  }}
+                  size="sm"
+                >
+                  Settle Up
+                </Button>
               </div>
             </li>
           ))}
@@ -347,6 +381,14 @@ function GroupPage() {
   const deleteExpense = useMutation(api.expenses.deleteExpense);
 
   const [showSettleForm, setShowSettleForm] = useState(false);
+  const [prefillSettleForm, setPrefillSettleForm] = useState<
+    | {
+        from: Id<"users">;
+        to: Id<"users">;
+        amount: number;
+      }
+    | undefined
+  >(undefined);
   const [showDeleteGroupConfirm, setShowDeleteGroupConfirm] = useState(false);
   const [showDeleteExpenseConfirm, setShowDeleteExpenseConfirm] =
     useState(false);
@@ -431,13 +473,15 @@ function GroupPage() {
         setShowExpenseDialog={setShowExpenseDialog}
       />
 
-      <BalancesSection balances={balances} users={users} />
+      <BalancesSection
+        balances={balances}
+        users={users}
+        setShowSettleForm={setShowSettleForm}
+        setPrefillSettleForm={setPrefillSettleForm}
+      />
 
       <section className="space-y-4 mt-8 py-4 flex items-center justify-center">
         <Dialog open={showSettleForm} onOpenChange={setShowSettleForm}>
-          <DialogTrigger asChild>
-            <Button className="w-full">Settle Up</Button>
-          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Record Settlement</DialogTitle>
@@ -446,7 +490,11 @@ function GroupPage() {
               <SettleForm
                 users={users}
                 onSubmit={handleSettle}
-                onCancel={() => setShowSettleForm(false)}
+                onCancel={() => {
+                  setShowSettleForm(false);
+                  setPrefillSettleForm(undefined);
+                }}
+                initialData={prefillSettleForm}
               />
             )}
           </DialogContent>
