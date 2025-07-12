@@ -48,7 +48,7 @@ function GroupSettingsPage() {
       <GroupSettingsForm
         group={group}
         allParticipants={users}
-        initialSelectedParticipants={users.map((u) => u?.userId || u._id)}
+        initialSelectedParticipants={users.map((u) => u._id)}
         onSubmit={async (data) => {
           await updateGroup({
             groupId: group._id,

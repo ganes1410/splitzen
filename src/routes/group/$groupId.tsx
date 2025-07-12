@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { ExpenseForm } from "@/components/expense-form";
 import { SettleForm } from "@/components/settle-form";
-import { Settings, ChevronDown, ChevronRight, Copy } from "lucide-react";
+import { Settings, ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
 
 export const Route = createFileRoute("/group/$groupId")({
@@ -211,7 +211,7 @@ function GroupPage() {
           className="ml-2 h-8 w-8"
         >
           {copied ? (
-            <span className="text-xs">Copied</span>
+            <Check className="h-4 w-4 text-green-500" />
           ) : (
             <Copy className="h-4 w-4" />
           )}
@@ -267,7 +267,6 @@ function GroupPage() {
                         setCurrentExpense(expense);
                         setShowExpenseDialog(true);
                       }}
-                      variant="outline"
                       size="sm"
                       className="mr-2"
                     >
@@ -337,9 +336,11 @@ function GroupPage() {
                   owes{" "}
                   <span className="font-semibold">
                     {getUserName(balance.to)}
-                  </span>{" "}
+                  </span>
+                  {" -> "}
                   <span className="font-semibold">
-                    {balance.amount.toFixed(2)} {balance.currency}
+                    {getCurrencySymbol(balance.currency)}
+                    {balance.amount.toFixed(2)}
                   </span>
                 </p>
               </li>

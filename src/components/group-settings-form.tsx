@@ -4,10 +4,16 @@ import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import type { Id } from "../../convex/_generated/dataModel";
 import { currencies } from "@/lib/currencies";
-import { MultiSelect } from "@/components/ui/multi-select";
+import {
+  createMultiSelect,
+  MultiSelect,
+  MultiSelectOption,
+} from "@/components/ui/multi-select";
 import { Combobox } from "@/components/ui/combobox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
+import { useConvex, useQuery } from "convex/react";
+import { api } from "convex/_generated/api";
 
 interface GroupSettingsFormProps {
   group: {
@@ -23,7 +29,7 @@ interface GroupSettingsFormProps {
     sessionId?: string | undefined;
     name: string;
   }[];
-  initialSelectedParticipants: string[];
+  initialSelectedParticipants: Id<"users">[];
   onSubmit: (data: {
     name: string;
     currency: string;
@@ -37,7 +43,10 @@ interface GroupSettingsFormProps {
     userId: string;
     userRecordId: Id<"users">;
   }>;
-  removeUserFromGroup: (userId: string, groupId: Id<"groups">) => Promise<any>;
+  removeUserFromGroup: (
+    userId: Id<"users">,
+    groupId: Id<"groups">
+  ) => Promise<any>;
 }
 
 const groupSettingsSchema = z.object({
@@ -57,7 +66,7 @@ export function GroupSettingsForm({
   const [name, setName] = useState(group.name);
   const [currency, setCurrency] = useState(group.currency || "USD");
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<
-    string[]
+    Array<Id<"users">>
   >(initialSelectedParticipants);
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
   const [newParticipantName, setNewParticipantName] = useState("");
@@ -65,6 +74,8 @@ export function GroupSettingsForm({
     useState(false);
   const [participantToRemove, setParticipantToRemove] =
     useState<Id<"users"> | null>(null);
+  const convex = useConvex();
+  const UserMultiSelect = createMultiSelect<Id<"users">>();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,8 +99,11 @@ export function GroupSettingsForm({
   const handleAddParticipant = async () => {
     if (newParticipantName.trim() === "") return;
     try {
-      const { userId } = await addUserToGroup(newParticipantName, group._id);
-      setSelectedParticipantIds((prev) => [...prev, userId as Id<"users">]);
+      const { userRecordId } = await addUserToGroup(
+        newParticipantName,
+        group._id
+      );
+      setSelectedParticipantIds((prev) => [...prev, userRecordId]);
       setNewParticipantName("");
       toast.success("Participant added!");
     } catch (error) {
@@ -98,8 +112,12 @@ export function GroupSettingsForm({
     }
   };
 
-  const handleRemoveParticipant = (userIdToRemove: string) => {
-    if (userIdToRemove === localStorage.getItem("userId")) {
+  const handleRemoveParticipant = async (userIdToRemove: Id<"users">) => {
+    const user = await convex.query(api.users.getUser, {
+      userRecordId: userIdToRemove,
+    });
+
+    if (user.userId === localStorage.getItem("userId")) {
       toast.error("You cannot remove yourself from the group.");
       return;
     }
@@ -164,9 +182,9 @@ export function GroupSettingsForm({
         <h3 className="text-lg font-medium text-foreground mb-2">
           Participants
         </h3>
-        <MultiSelect
+        <UserMultiSelect
           options={allParticipants.map((p) => ({
-            value: p?.userId || p._id,
+            value: p._id,
             label: p.name,
           }))}
           selected={selectedParticipantIds}
