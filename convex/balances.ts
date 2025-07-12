@@ -1,3 +1,4 @@
+import type { Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -33,7 +34,7 @@ export const getBalances = query({
       await Promise.all(members.map((member) => ctx.db.get(member.userId)))
     ).filter(Boolean);
 
-    const balances: { [userId: string]: number } = {};
+    const balances: Record<Id<"users">, number> = {};
     users.forEach((user) => {
       if (user) {
         balances[user._id] = 0;
@@ -53,8 +54,6 @@ export const getBalances = query({
       balances[settlement.to] -= settlement.amount;
     });
 
-    import type { Id } from "./_generated/dataModel";
-
     const allTransactions: {
       from: Id<"users">;
       to: Id<"users">;
@@ -68,12 +67,13 @@ export const getBalances = query({
     const EPSILON = 0.0001; // A small value to account for floating-point inaccuracies
 
     for (const userId in balances) {
-      if (balances[userId] > EPSILON) {
+      const uid = userId as Id<"users">;
+      if (balances[uid] > EPSILON) {
         // Check if significantly positive
-        positiveBalances.push({ userId, amount: balances[userId] });
-      } else if (balances[userId] < -EPSILON) {
+        positiveBalances.push({ userId: uid, amount: balances[uid] });
+      } else if (balances[uid] < -EPSILON) {
         // Check if significantly negative
-        negativeBalances.push({ userId, amount: -balances[userId] });
+        negativeBalances.push({ userId: uid, amount: -balances[uid] });
       }
       // If balance is between -EPSILON and EPSILON, treat as zero and ignore
     }
