@@ -131,94 +131,99 @@ function GroupPage() {
   };
 
   return (
-    <div className="flex flex-col sm:ml-40 px-3 ">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold text-primary">{group?.name}</h1>
-        <div className="flex space-x-2">
-          <Button
-            onClick={() => {
-              setCurrentExpense(undefined);
-              setShowExpenseDialog(true);
-            }}
-          >
-            Add Expense
-          </Button>
-          <Button
-            onClick={() => setShowDeleteGroupConfirm(true)}
-            variant="destructive"
-          >
-            Delete Group
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() =>
-              router.navigate({
-                to: "/$groupId/settings",
-                params: { groupId },
-              })
-            }
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
-          <Dialog open={showExpenseDialog} onOpenChange={setShowExpenseDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {currentExpense ? "Edit Expense" : "Add Expense"}
-                </DialogTitle>
-              </DialogHeader>
-              <ExpenseForm
-                groupId={groupId as Id<"groups">}
-                initialData={currentExpense}
-                onSubmit={async (data) => {
-                  if (data.expenseId) {
-                    await updateExpense({
-                      ...data,
-                      expenseId: data.expenseId as Id<"expenses">,
-                    });
-                  } else {
-                    await createExpense({
-                      groupId: groupId as Id<"groups">,
-                      ...data,
-                    });
+    <div className="flex flex-col sm:ml-40 px-3">
+      <div className=" sticky top-4 bg-background py-3">
+        <div className="flex justify-between items-center mb-3">
+          <h1 className="text-3xl font-bold text-primary">{group?.name}</h1>
+          <div className="flex space-x-2">
+            <Button
+              onClick={() => {
+                setCurrentExpense(undefined);
+                setShowExpenseDialog(true);
+              }}
+            >
+              Add Expense
+            </Button>
+            <Button
+              onClick={() => setShowDeleteGroupConfirm(true)}
+              variant="destructive"
+            >
+              Delete Group
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() =>
+                router.navigate({
+                  to: "/$groupId/settings",
+                  params: { groupId },
+                })
+              }
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Dialog
+              open={showExpenseDialog}
+              onOpenChange={setShowExpenseDialog}
+            >
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {currentExpense ? "Edit Expense" : "Add Expense"}
+                  </DialogTitle>
+                </DialogHeader>
+                <ExpenseForm
+                  groupId={groupId as Id<"groups">}
+                  initialData={currentExpense}
+                  onSubmit={async (data) => {
+                    if (data.expenseId) {
+                      await updateExpense({
+                        ...data,
+                        expenseId: data.expenseId as Id<"expenses">,
+                      });
+                    } else {
+                      await createExpense({
+                        groupId: groupId as Id<"groups">,
+                        ...data,
+                      });
+                    }
+                    setShowExpenseDialog(false);
+                    setCurrentExpense(undefined);
+                  }}
+                  submitButtonText={
+                    currentExpense ? "Update Expense" : "Add Expense"
                   }
-                  setShowExpenseDialog(false);
-                  setCurrentExpense(undefined);
-                }}
-                submitButtonText={
-                  currentExpense ? "Update Expense" : "Add Expense"
-                }
-                onCancel={() => {
-                  setShowExpenseDialog(false);
-                  setCurrentExpense(undefined);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+                  onCancel={() => {
+                    setShowExpenseDialog(false);
+                    setCurrentExpense(undefined);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        <div className="text-md text-muted-foreground flex items-center">
+          Invite Code:{" "}
+          <span className="font-semibold text-foreground ml-2">
+            {group?.inviteCode}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCopy}
+            className="ml-2 h-8 w-8"
+          >
+            {copied ? (
+              <Check className="h-4 w-4 text-green-500" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
 
-      <div className="text-md text-muted-foreground flex items-center">
-        Invite Code:{" "}
-        <span className="font-semibold text-foreground ml-2">
-          {group?.inviteCode}
-        </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleCopy}
-          className="ml-2 h-8 w-8"
-        >
-          {copied ? (
-            <Check className="h-4 w-4 text-green-500" />
-          ) : (
-            <Copy className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-
-      <section className="space-y-4 border-t mt-8 pt-4">
+      <section className="space-y-4 border-t mt-4 pt-4">
         <h2 className="text-2xl font-bold text-primary">Expenses</h2>
         {expenses?.length === 0 ? (
           <div className="text-muted-foreground">
@@ -250,13 +255,20 @@ function GroupPage() {
                         <ChevronRight className="h-4 w-4" />
                       )}
                     </Button>
-                    <div>
-                      <p className="text-lg font-semibold text-foreground">
-                        {getUserName(expense.payerId)} paid{" "}
-                        {getCurrencySymbol(group?.currency)}
-                        {expense.amount} for {expense.description}
+                    <div className="flex flex-col gap-1 w-full">
+                      <p className="text-base text-foreground">
+                        <span className="font-semibold">
+                          {getUserName(expense.payerId)}
+                        </span>{" "}
+                        paid{" "}
+                        <span className="font-semibold text-primary">
+                          {getCurrencySymbol(group?.currency)}
+                          {expense.amount.toFixed(2)}
+                        </span>{" "}
+                        for{" "}
+                        <span className="italic">{expense.description}</span>
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {new Date(expense.date || "").toLocaleDateString()}
                       </p>
                     </div>
@@ -296,7 +308,7 @@ function GroupPage() {
                         return (
                           <li
                             key={userId}
-                            className="flextext-sm text-muted-foreground"
+                            className="flex text-sm text-muted-foreground"
                           >
                             <span>{user?.name || "Unknown"} </span>
                             <span>
@@ -316,20 +328,21 @@ function GroupPage() {
         )}
       </section>
 
-      <section className="space-y-4 border-t mt-8 pt-4">
+      <section className="space-y-4 border-t pt-6">
         <h2 className="text-2xl font-bold text-primary">Balances</h2>
+
         {balances?.length === 0 ? (
-          <p className="text-muted-foreground">
-            All settled up! No outstanding balances in this group.
+          <p className="text-muted-foreground italic">
+            No outstanding balances.
           </p>
         ) : (
           <ul className="space-y-3">
-            {balances?.map((balance, index) => (
+            {balances.map((balance, index) => (
               <li
                 key={index}
-                className="p-4 border rounded-lg shadow-sm bg-card"
+                className="p-4 border rounded-lg shadow-sm bg-card flex items-center justify-between"
               >
-                <p className="text-lg text-foreground">
+                <div className="text-base text-foreground">
                   <span className="font-semibold">
                     {getUserName(balance.from)}
                   </span>{" "}
@@ -337,22 +350,21 @@ function GroupPage() {
                   <span className="font-semibold">
                     {getUserName(balance.to)}
                   </span>
-                  {" -> "}
-                  <span className="font-semibold">
-                    {getCurrencySymbol(balance.currency)}
-                    {balance.amount.toFixed(2)}
-                  </span>
-                </p>
+                </div>
+                <div className="text-lg font-bold text-primary">
+                  {getCurrencySymbol(balance.currency)}
+                  {balance.amount.toFixed(2)}
+                </div>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="space-y-4 mt-8 pt-4">
+      <section className="space-y-4 mt-8 py-4 flex items-center justify-center">
         <Dialog open={showSettleForm} onOpenChange={setShowSettleForm}>
           <DialogTrigger asChild>
-            <Button className="w-1/2">Settle Up</Button>
+            <Button className="w-full">Settle Up</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
