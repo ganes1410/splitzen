@@ -7,7 +7,7 @@ const Toaster = ({ toastOptions, ...props }: ToasterProps) => {
       toastOptions={{
         unstyled: true,
         classNames: {
-          error: "bg-destructive text-white ",
+          error: "bg-destructive text-destructive-foreground",
           success: "bg-green-900 text-white",
           toast:
             "flex items-center gap-2 border-border shadow-sm p-4 rounded-lg",

@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { useConvex } from "convex/react";
 import { api } from "convex/_generated/api";
+import { ConvexError } from "convex/values";
 
 interface GroupSettingsFormProps {
   group: {
@@ -132,7 +133,13 @@ export function GroupSettingsForm({
       setParticipantToRemove(null);
       setShowRemoveParticipantConfirm(false);
     } catch (error) {
-      toast.error("Failed to remove participant. Please try again.");
+      console.log({ error });
+      toast.error(
+        error instanceof ConvexError
+          ? error?.data
+          : "Failed to remove participant. Please try again."
+      );
+      setShowRemoveParticipantConfirm(false);
       setParticipantToRemove(null);
     }
   };

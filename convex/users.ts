@@ -1,5 +1,6 @@
+import { api } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 
 export const create = mutation({
   args: { name: v.string() },
@@ -165,6 +166,24 @@ export const removeUserFromGroup = mutation({
         .filter((q) => q.eq(q.field("userId"), args.userId))
         .collect();
 
+      // Check if the user has any pending balances in this group
+      const userBalance = await ctx.runQuery(
+        api.balances.getUserBalanceInGroup,
+        {
+          userId: args.userId,
+          groupId: args.groupId,
+        }
+      );
+
+      const EPSILON = 0.0001; // A small value to account for floating-point inaccuracies
+
+      if (Math.abs(userBalance) > EPSILON) {
+        throw new ConvexError(
+          "Cannot remove user with pending balances. Please settle all balances first."
+        );
+      }
+
+      await ctx.db.delete(membership._id);
       // If no other memberships, and the user being removed is NOT the authenticated user, then delete the user record.
       // We compare userBeingRemoved.userId (the string ID from the auth provider) with authenticatedUserConvexId
       if (

@@ -108,3 +108,45 @@ export const getBalances = query({
     return allTransactions;
   },
 });
+
+export const getUserBalanceInGroup = query({
+  args: { userId: v.id("users"), groupId: v.id("groups") },
+  handler: async (ctx, args) => {
+    const group = await ctx.db.get(args.groupId);
+    if (!group) {
+      throw new Error("Group not found");
+    }
+
+    const expenses = await ctx.db
+      .query("expenses")
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
+      .collect();
+
+    const settlements = await ctx.db
+      .query("settlements")
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
+      .collect();
+
+    let balance = 0;
+
+    expenses.forEach((expense) => {
+      if (expense.payerId === args.userId) {
+        balance += expense.amount;
+      }
+      if (expense.splitAmong.includes(args.userId)) {
+        balance -= expense.amount / expense.splitAmong.length;
+      }
+    });
+
+    settlements.forEach((settlement) => {
+      if (settlement.from === args.userId) {
+        balance += settlement.amount;
+      }
+      if (settlement.to === args.userId) {
+        balance -= settlement.amount;
+      }
+    });
+
+    return balance;
+  },
+});
