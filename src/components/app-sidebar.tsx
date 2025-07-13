@@ -47,12 +47,13 @@ const AppHeader = () => {
 
 const AppSidebar = ({ children }: { children: React.ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setUserId(localStorage.getItem("userId"));
-    }
+    setHasMounted(true);
+    setUserId(localStorage.getItem("userId"));
   }, []);
+
   const groups = useQuery(
     api.groups.getGroupsForUser,
     userId === null ? "skip" : { userId }
@@ -82,7 +83,7 @@ const AppSidebar = ({ children }: { children: React.ReactNode }) => {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {userId && groups === undefined ? (
+                  {!hasMounted || (userId && groups === undefined) ? (
                     <div className="flex flex-col items-center justify-center text-center px-4 py-8 space-y-3">
                       <p className="text-sm font-medium text-muted-foreground">
                         Loading groups...
