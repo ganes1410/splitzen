@@ -32,6 +32,10 @@ function CreateGroup() {
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
   const [loading, setLoading] = useState(false);
 
+  if (userName.length === 0 && localStorage.getItem("userId")) {
+    setUserName(localStorage.getItem("userId") || "");
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors(null);
