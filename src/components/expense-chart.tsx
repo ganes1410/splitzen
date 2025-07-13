@@ -17,7 +17,16 @@ interface ExpenseChartProps {
   users: Doc<"users">[];
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28DFF', '#FF6B6B', '#6BFFB8', '#FFD16B'];
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#A28DFF",
+  "#FF6B6B",
+  "#6BFFB8",
+  "#FFD16B",
+];
 
 export const ExpenseChart: React.FC<ExpenseChartProps> = ({
   expenses,
@@ -52,7 +61,9 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
         </summary>
         <div className="mt-4">
           {data.length === 0 ? (
-            <p className="text-muted-foreground italic">No expenses to display.</p>
+            <p className="text-muted-foreground italic">
+              No expenses to display.
+            </p>
           ) : (
             <>
               <ResponsiveContainer width="100%" height={300}>
@@ -67,7 +78,7 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
                     fill="#8884d8"
                     label
                   >
-                    {data.map((entry, index) => (
+                    {data.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
@@ -84,13 +95,19 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4">
-                <h3 className="text-xl font-semibold mb-2">Detailed Expenses</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  Detailed Expenses
+                </h3>
                 <ul className="space-y-2">
                   {data.map((entry, index) => (
-                    <li key={index} className="flex justify-between items-center">
+                    <li
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
                       <span className="font-medium">{entry.name}:</span>
                       <span className="text-primary font-semibold">
-                        {currencySymbol}{entry.amount.toFixed(2)}
+                        {currencySymbol}
+                        {entry.amount.toFixed(2)}
                       </span>
                     </li>
                   ))}

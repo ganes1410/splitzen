@@ -11,10 +11,27 @@ export default defineConfig({
   plugins: [
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({
+      sitemap: {
+        enabled: true,
+        host: "https://splitzen.vercel.app/",
+      },
       spa: {
+        prerender: { enabled: true, crawlLinks: true },
         enabled: true,
       },
     }),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("recharts")) return "recharts";
+          if (id.includes("lucide-react")) return "icons";
+          if (id.includes("react") && !id.includes("router"))
+            return "react-vendor";
+        },
+      },
+    },
+  },
 });

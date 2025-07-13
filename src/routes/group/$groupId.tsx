@@ -1,25 +1,53 @@
 import { createFileRoute, useRouter, useSearch } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQueries, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 
 type Expense = Doc<"expenses">;
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ExpenseForm } from "@/components/expense-form";
-import { SettleForm } from "@/components/settle-form";
-import { ExpenseChart } from "@/components/expense-chart";
-import { Settings, ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
+import {
+  Settings,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  Check,
+  MoreVertical,
+} from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
 import z from "zod";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+const ExpenseForm = lazy(() =>
+  import("@/components/expense-form").then((m) => ({ default: m.ExpenseForm }))
+);
+const SettleForm = lazy(() =>
+  import("@/components/settle-form").then((m) => ({ default: m.SettleForm }))
+);
+const ConfirmDialog = lazy(() =>
+  import("@/components/ui/confirm-dialog").then((m) => ({
+    default: m.ConfirmDialog,
+  }))
+);
+const ExpenseChart = lazy(() =>
+  import("@/components/expense-chart").then((m) => ({
+    default: m.ExpenseChart,
+  }))
+);
 
 export const Route = createFileRoute("/group/$groupId")({
   component: GroupPage,
@@ -44,11 +72,9 @@ function GroupHeader({
   showExpenseDialog,
   setShowExpenseDialog: setShowExpenseDialogState,
   currentExpense,
-  setCurrentExpense: setCurrentExpenseState,
 }: {
   group: Doc<"groups"> | null;
   groupId: string;
-
   setShowExpenseDialog: (show: boolean) => void;
   setCurrentExpense: (expense: Expense | undefined) => void;
   setShowDeleteGroupConfirm: (show: boolean) => void;
@@ -59,46 +85,84 @@ function GroupHeader({
   const createExpense = useMutation(api.expenses.create);
   const updateExpense = useMutation(api.expenses.update);
   const router = useRouter();
+  const isMobile = useIsMobile();
 
   const handleCopy = () => {
     if (group?.inviteCode) {
       navigator.clipboard.writeText(group.inviteCode);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 1500);
     }
   };
 
   return (
-    <div className=" sticky top-1 bg-background py-4">
+    <div className="sticky top-1 bg-background py-4">
       <div className="flex justify-between items-center mb-3">
         <h1 className="text-3xl font-bold text-primary">{group?.name}</h1>
         <div className="flex space-x-2">
-          <Button
-            onClick={() => {
-              setCurrentExpense(undefined);
-              setShowExpenseDialog(true);
-            }}
-          >
-            Add Expense
-          </Button>
-          <Button
-            onClick={() => setShowDeleteGroupConfirm(true)}
-            variant="destructive"
-          >
-            Delete Group
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() =>
-              router.navigate({
-                to: "/$groupId/settings",
-                params: { groupId },
-              })
-            }
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
+          {isMobile ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setCurrentExpense(undefined);
+                    setShowExpenseDialog(true);
+                  }}
+                >
+                  Add Expense
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setShowDeleteGroupConfirm(true)}
+                >
+                  Delete Group
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    router.navigate({
+                      to: "/$groupId/settings",
+                      params: { groupId },
+                    })
+                  }
+                >
+                  Settings
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Button
+                onClick={() => {
+                  setCurrentExpense(undefined);
+                  setShowExpenseDialog(true);
+                }}
+              >
+                Add Expense
+              </Button>
+              <Button
+                onClick={() => setShowDeleteGroupConfirm(true)}
+                variant="destructive"
+              >
+                Delete Group
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() =>
+                  router.navigate({
+                    to: "/$groupId/settings",
+                    params: { groupId },
+                  })
+                }
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </>
+          )}
           <Dialog
             open={showExpenseDialog}
             onOpenChange={setShowExpenseDialogState}
@@ -109,32 +173,32 @@ function GroupHeader({
                   {currentExpense ? "Edit Expense" : "Add Expense"}
                 </DialogTitle>
               </DialogHeader>
-              <ExpenseForm
-                groupId={groupId as Id<"groups">}
-                initialData={currentExpense}
-                onSubmit={async (data) => {
-                  if (data.expenseId) {
-                    await updateExpense({
-                      ...data,
-                      expenseId: data.expenseId as Id<"expenses">,
-                    });
-                  } else {
-                    await createExpense({
-                      groupId: groupId as Id<"groups">,
-                      ...data,
-                    });
+              <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                <ExpenseForm
+                  groupId={groupId as Id<"groups">}
+                  initialData={currentExpense}
+                  onSubmit={async (data) => {
+                    if (data.expenseId) {
+                      await updateExpense({
+                        ...data,
+                        expenseId: data.expenseId as Id<"expenses">,
+                      });
+                    } else {
+                      await createExpense({
+                        groupId: groupId as Id<"groups">,
+                        ...data,
+                      });
+                    }
+                    setShowExpenseDialogState(false);
+                  }}
+                  submitButtonText={
+                    currentExpense ? "Update Expense" : "Add Expense"
                   }
-                  setShowExpenseDialogState(false);
-                  setCurrentExpenseState(undefined);
-                }}
-                submitButtonText={
-                  currentExpense ? "Update Expense" : "Add Expense"
-                }
-                onCancel={() => {
-                  setShowExpenseDialogState(false);
-                  setCurrentExpenseState(undefined);
-                }}
-              />
+                  onCancel={() => {
+                    setShowExpenseDialogState(false);
+                  }}
+                />
+              </Suspense>
             </DialogContent>
           </Dialog>
         </div>
@@ -220,18 +284,18 @@ function ExpensesSection({
     <section className="space-y-4 border-t mt-4 pt-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-primary">Expenses</h2>
-        <div className="flex gap-6 ">
+        <div className="flex gap-2 md:gap-6 ">
           <Input
             type="text"
-            placeholder="Filter by description..."
+            placeholder="Filter..."
             value={filterBy}
             onChange={(e) => setFilterBy(e.target.value)}
-            className="w-48 h-auto"
+            className="w-32 md:w-48 h-auto"
           />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="flex h-10 w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-32 md:w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="date">Sort by Date</option>
             <option value="amount">Sort by Amount</option>
@@ -415,6 +479,20 @@ function BalancesSection({
   );
 }
 
+function GroupPageSkeleton() {
+  return (
+    <div className="flex flex-col sm:ml-40 px-3 py-4">
+      <Skeleton className="h-8 w-48 mb-4" />
+      <Skeleton className="h-6 w-64 mb-4" />
+      <div className="space-y-4 mt-8">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    </div>
+  );
+}
+
 function GroupPage() {
   const { groupId } = Route.useParams();
   const router = useRouter();
@@ -441,6 +519,7 @@ function GroupPage() {
       replace: true,
     });
   };
+
   const group = useQuery(api.groups.getGroup, {
     groupId: groupId as Id<"groups">,
   });
@@ -485,11 +564,7 @@ function GroupPage() {
     users === undefined ||
     balances === undefined
   ) {
-    return (
-      <div className="flex flex-col sm:ml-40 px-3 py-4">
-        Loading group data...
-      </div>
-    );
+    return <GroupPageSkeleton />;
   }
 
   // Redirect if group is not found (e.g., deleted)
@@ -542,7 +617,9 @@ function GroupPage() {
       />
 
       {expenses && group && users && (
-        <ExpenseChart expenses={expenses} group={group} users={users} />
+        <Suspense fallback={null}>
+          <ExpenseChart expenses={expenses} group={group} users={users} />
+        </Suspense>
       )}
 
       <ExpensesSection
@@ -570,38 +647,44 @@ function GroupPage() {
             <DialogHeader>
               <DialogTitle>Record Settlement</DialogTitle>
             </DialogHeader>
-            {users && (
-              <SettleForm
-                users={users}
-                onSubmit={handleSettle}
-                onCancel={() => {
-                  setShowSettleForm(false);
-                  setPrefillSettleForm(undefined);
-                }}
-                initialData={prefillSettleForm}
-              />
-            )}
+            <Suspense fallback={null}>
+              {users && (
+                <SettleForm
+                  users={users}
+                  onSubmit={handleSettle}
+                  onCancel={() => {
+                    setShowSettleForm(false);
+                    setPrefillSettleForm(undefined);
+                  }}
+                  initialData={prefillSettleForm}
+                />
+              )}
+            </Suspense>
           </DialogContent>
         </Dialog>
       </section>
 
-      <ConfirmDialog
-        open={showDeleteGroupConfirm}
-        onOpenChange={setShowDeleteGroupConfirm}
-        title="Confirm Group Deletion"
-        description="Are you sure you want to delete this group? This action cannot be undone and all associated data (users, expenses, settlements) will be permanently removed."
-        onConfirm={handleDeleteGroup}
-        confirmText="Delete Group"
-      />
+      <Suspense fallback={null}>
+        <ConfirmDialog
+          open={showDeleteGroupConfirm}
+          onOpenChange={setShowDeleteGroupConfirm}
+          title="Confirm Group Deletion"
+          description="Are you sure you want to delete this group? This action cannot be undone and all associated data (users, expenses, settlements) will be permanently removed."
+          onConfirm={handleDeleteGroup}
+          confirmText="Delete Group"
+        />
+      </Suspense>
 
-      <ConfirmDialog
-        open={showDeleteExpenseConfirm}
-        onOpenChange={setShowDeleteExpenseConfirm}
-        title="Confirm Expense Deletion"
-        description="Are you sure you want to delete this expense? This action cannot be undone."
-        onConfirm={confirmDeleteExpense}
-        confirmText="Delete Expense"
-      />
+      <Suspense fallback={null}>
+        <ConfirmDialog
+          open={showDeleteExpenseConfirm}
+          onOpenChange={setShowDeleteExpenseConfirm}
+          title="Confirm Expense Deletion"
+          description="Are you sure you want to delete this expense? This action cannot be undone."
+          onConfirm={confirmDeleteExpense}
+          confirmText="Delete Expense"
+        />
+      </Suspense>
     </div>
   );
 }
