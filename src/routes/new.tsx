@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useMutation } from "convex/react";
+import { useConvex, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { currencies } from "@/lib/currencies";
 import { Combobox } from "@/components/ui/combobox";
+import { Id } from "convex/_generated/dataModel";
 
 export const Route = createFileRoute("/new")({
   component: CreateGroup,
@@ -31,9 +32,18 @@ function CreateGroup() {
   const [currency, setCurrency] = useState("INR");
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const convex = useConvex();
 
   if (userName.length === 0 && localStorage.getItem("userId")) {
-    setUserName(localStorage.getItem("userId") || "");
+    convex
+      .query(api.users.getUser, {
+        userRecordId: localStorage.getItem("userId") as Id<"users">,
+      })
+      .then((user) => {
+        if (user) {
+          setUserName(user.name || "");
+        }
+      });
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
