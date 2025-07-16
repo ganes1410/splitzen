@@ -4,17 +4,17 @@ Splitzen is a fast and privacy-friendly application designed to simplify group e
 
 ## Key Technologies
 
-*   **Frontend:** React, TanStack Router
-*   **Backend:** Convex (for real-time data and serverless functions)
-*   **Styling:** Tailwind CSS
+- **Frontend:** React, TanStack Router
+- **Backend:** Convex
+- **Styling:** Tailwind CSS
 
 ## Features
 
-*   **Group Management:** Create new groups and join existing ones using invite codes.
-*   **Expense Tracking:** Record who paid and who owes for each expense.
-*   **Participant Management:** Add and remove participants within group settings.
-*   **Optimized Settlements:** Get suggestions for the most efficient way to settle all outstanding balances.
-*   **Responsive Design:** Enjoy a seamless experience on both desktop and mobile devices.
+- **Group Management:** Create new groups and join existing ones using invite codes.
+- **Expense Tracking:** Record who paid and who owes for each expense.
+- **Participant Management:** Add and remove participants within group settings.
+- **Optimized Settlements:** Get suggestions for the most efficient way to settle all outstanding balances.
+- **Responsive Design:** Enjoy a seamless experience on both desktop and mobile devices.
 
 ## Getting Started
 
@@ -42,15 +42,3 @@ To build the application for production:
 ```bash
 npm run build
 ```
-
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
-
-```bash
-npm run test
-```
-
-## Deployment
-
-This application is configured for deployment with Vercel.
