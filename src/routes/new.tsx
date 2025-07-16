@@ -37,7 +37,7 @@ function CreateGroup() {
   if (userName.length === 0 && localStorage.getItem("userId")) {
     convex
       .query(api.users.getUser, {
-        userRecordId: localStorage.getItem("userId") as Id<"users">,
+        userId: localStorage.getItem("userId") ?? "",
       })
       .then((user) => {
         if (user) {

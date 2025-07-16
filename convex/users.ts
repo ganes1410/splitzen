@@ -124,11 +124,11 @@ export const getMembership = query({
 });
 
 export const getUser = query({
-  args: { userRecordId: v.id("users") },
+  args: { userId: v.string() },
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("_id"), args.userRecordId))
+      .filter((q) => q.eq(q.field("userId"), args.userId))
       .first();
     if (!user) {
       throw new Error("User not found");
