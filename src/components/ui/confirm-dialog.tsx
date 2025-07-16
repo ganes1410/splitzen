@@ -1,6 +1,5 @@
-
-import React from 'react'
-import { Button } from './button'
+import React from "react";
+import { Button } from "./button";
 import {
   Dialog,
   DialogContent,
@@ -8,16 +7,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './dialog'
+} from "./dialog";
 
 interface ConfirmDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title: string
-  description: string
-  onConfirm: () => void
-  confirmText?: string
-  cancelText?: string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  onConfirm: () => void;
+  confirmText?: string;
+  cancelText?: string;
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -26,8 +25,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   title,
   description,
   onConfirm,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = "Confirm",
+  cancelText = "Cancel",
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,5 +43,5 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

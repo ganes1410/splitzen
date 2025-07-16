@@ -1,8 +1,8 @@
-import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import * as React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -10,7 +10,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
@@ -39,7 +39,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between text-foreground"
         >
           {value
             ? options.find((option) => option.value === value)?.label
@@ -55,6 +55,7 @@ export function Combobox({
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
+                  className="hover:bg-primary/10 text-foreground"
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
@@ -64,7 +65,7 @@ export function Combobox({
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 h-4 w-4 text-foreground",
                       value === option.value ? "opacity-100" : "opacity-0"
                     )}
                   />

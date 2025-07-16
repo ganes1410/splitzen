@@ -295,7 +295,7 @@ function ExpensesSection({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="flex h-10 w-32 md:w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-32 md:w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="date">Sort by Date</option>
             <option value="amount">Sort by Amount</option>
@@ -327,9 +327,9 @@ function ExpensesSection({
                     }
                   >
                     {expandedExpenseIds.includes(expense._id) ? (
-                      <ChevronDown className="h-4 w-4" />
+                      <ChevronDown className="h-4 w-4 text-foreground" />
                     ) : (
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-4 w-4 text-foreground" />
                     )}
                   </Button>
                   <div className="flex flex-col gap-1 w-full">
@@ -372,8 +372,10 @@ function ExpensesSection({
                 </div>
               </div>
               {expandedExpenseIds.includes(expense._id) && (
-                <div className="mt-4 pt-4 border-t border-dashed">
-                  <h4 className="text-md font-semibold mb-2">Split Details</h4>
+                <div className="mt-4 pt-4 border-t border-accent-foreground border-dashed">
+                  <h4 className="text-md font-semibold mb-2 text-primary">
+                    Split Details
+                  </h4>
                   <ul className="flex flex-col gap-2">
                     {expense.splitAmong.map((userId) => {
                       const user = users?.find((u) => u._id === userId);

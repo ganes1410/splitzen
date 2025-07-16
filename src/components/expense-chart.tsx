@@ -95,16 +95,15 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4">
-                <h3 className="text-xl font-semibold mb-2">
+                <h3 className="text-xl font-semibold mb-2 text-foreground">
                   Detailed Expenses
                 </h3>
                 <ul className="space-y-2">
                   {data.map((entry, index) => (
-                    <li
-                      key={index}
-                      className="flex justify-between items-center"
-                    >
-                      <span className="font-medium">{entry.name}:</span>
+                    <li key={index} className="flex items-center gap-x-2">
+                      <span className="text-muted-foreground">
+                        {entry.name}:
+                      </span>
                       <span className="text-primary font-semibold">
                         {currencySymbol}
                         {entry.amount.toFixed(2)}

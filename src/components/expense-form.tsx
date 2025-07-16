@@ -103,10 +103,7 @@ export function ExpenseForm({
     users && payerId && amount && description && splitAmong.length > 0;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 p-2 rounded-lg shadow-md"
-    >
+    <form onSubmit={handleSubmit} className="space-y-4 p-2 rounded-lg">
       <div>
         <label
           htmlFor="amount"
@@ -190,7 +187,7 @@ export function ExpenseForm({
           name="payer"
           value={payerId}
           onChange={(e) => setPayerId(e.target.value as Id<"users">)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="">Select Payer</option>
           {users?.map((user) => (
