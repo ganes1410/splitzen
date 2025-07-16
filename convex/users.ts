@@ -1,3 +1,4 @@
+import { LucideReceiptPoundSterling } from "lucide-react";
 import { api } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
@@ -130,6 +131,21 @@ export const getUser = query({
       .query("users")
       .filter((q) => q.eq(q.field("userId"), args.userId))
       .first();
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
+  },
+});
+
+export const getUserByRecordId = query({
+  args: { userRecordId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("_id"), args.userRecordId))
+      .first();
+
     if (!user) {
       throw new Error("User not found");
     }

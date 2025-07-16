@@ -110,7 +110,7 @@ export function GroupSettingsForm({
   };
 
   const handleRemoveParticipant = async (userIdToRemove: Id<"users">) => {
-    const user = await convex.query(api.users.getUser, {
+    const user = await convex.query(api.users.getUserByRecordId, {
       userRecordId: userIdToRemove,
     });
 
