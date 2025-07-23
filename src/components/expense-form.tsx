@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
@@ -51,7 +51,7 @@ export function ExpenseForm({
   const [description, setDescription] = useState(
     initialData?.description || ""
   );
-  const [payerId, setPayerId] = useState<Id<"users"> | "">(
+  const [payerId, setPayerId] = useState<Id<"users"> | ""> (
     initialData?.payerId || ""
   );
   const [splitAmong, setSplitAmong] = useState<string[]>(
@@ -62,6 +62,17 @@ export function ExpenseForm({
   );
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
   const users = useQuery(api.users.getUsersInGroup, { groupId });
+  const amountInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    amountInputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!initialData && users) {
+      setSplitAmong(users.map((user) => user._id));
+    }
+  }, [users, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,6 +123,7 @@ export function ExpenseForm({
           Amount
         </label>
         <Input
+          ref={amountInputRef}
           id="amount"
           name="amount"
           type="number"
@@ -166,7 +178,7 @@ export function ExpenseForm({
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="w-full"
+          className="w-full date-picker-dark-fix"
         />
         {errors?.find((e: z.ZodIssue) => e.path[0] === "date") && (
           <p className="text-destructive text-sm mt-1">
