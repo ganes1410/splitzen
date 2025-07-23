@@ -33,21 +33,47 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
   group,
   users,
 }) => {
-  const data = React.useMemo(() => {
-    const userExpenses: { [key: string]: number } = {};
+  const { expenseShares, totalPaid } = React.useMemo(() => {
+    const userShares: { [key: string]: number } = {};
+    const userPaid: { [key: string]: number } = {};
+
+    users.forEach((user) => {
+      userShares[user.name] = 0;
+      userPaid[user.name] = 0;
+    });
 
     expenses.forEach((expense) => {
+      // Calculate shares
+      const share = expense.amount / expense.splitAmong.length;
+      expense.splitAmong.forEach((userId) => {
+        const user = users.find((u) => u._id === userId);
+        if (user) {
+          userShares[user.name] += share;
+        }
+      });
+
+      // Calculate total paid
       const payer = users.find((user) => user._id === expense.payerId);
       if (payer) {
-        userExpenses[payer.name] =
-          (userExpenses[payer.name] || 0) + expense.amount;
+        userPaid[payer.name] += expense.amount;
       }
     });
 
-    return Object.keys(userExpenses).map((name) => ({
-      name,
-      amount: userExpenses[name],
-    }));
+    const expenseSharesData = Object.keys(userShares)
+      .map((name) => ({
+        name,
+        amount: userShares[name],
+      }))
+      .filter((user) => user.amount > 0);
+
+    const totalPaidData = Object.keys(userPaid)
+      .map((name) => ({
+        name,
+        amount: userPaid[name],
+      }))
+      .filter((user) => user.amount > 0);
+
+    return { expenseShares: expenseSharesData, totalPaid: totalPaidData };
   }, [expenses, users]);
 
   const currencySymbol = getCurrencySymbol(group?.currency);
@@ -60,7 +86,7 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
           <ChevronDown className="h-6 w-6 transform transition-transform group-open:rotate-180" />
         </summary>
         <div className="mt-4">
-          {data.length === 0 ? (
+          {expenseShares.length === 0 ? (
             <p className="text-muted-foreground italic">
               No expenses to display.
             </p>
@@ -69,7 +95,7 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={data}
+                    data={expenseShares}
                     dataKey="amount"
                     nameKey="name"
                     cx="50%"
@@ -78,7 +104,7 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
                     fill="#8884d8"
                     label
                   >
-                    {data.map((_, index) => (
+                    {expenseShares.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
@@ -88,29 +114,49 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
                   <Tooltip
                     formatter={(value: number) => [
                       `${currencySymbol}${value.toFixed(2)}`,
-                      "Amount",
+                      "Share",
                     ]}
                   />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="mt-4">
-                <h3 className="text-xl font-semibold mb-2 text-foreground">
-                  Detailed Expenses
-                </h3>
-                <ul className="space-y-2">
-                  {data.map((entry, index) => (
-                    <li key={index} className="flex items-center gap-x-2">
-                      <span className="text-muted-foreground">
-                        {entry.name}:
-                      </span>
-                      <span className="text-primary font-semibold">
-                        {currencySymbol}
-                        {entry.amount.toFixed(2)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-foreground">
+                    Expense Shares
+                  </h3>
+                  <ul className="space-y-2">
+                    {expenseShares.map((entry, index) => (
+                      <li key={index} className="flex items-center gap-x-2">
+                        <span className="text-muted-foreground">
+                          {entry.name}:
+                        </span>
+                        <span className="text-primary font-semibold">
+                          {currencySymbol}
+                          {entry.amount.toFixed(2)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-foreground">
+                    Total Paid
+                  </h3>
+                  <ul className="space-y-2">
+                    {totalPaid.map((entry, index) => (
+                      <li key={index} className="flex items-center gap-x-2">
+                        <span className="text-muted-foreground">
+                          {entry.name}:
+                        </span>
+                        <span className="text-primary font-semibold">
+                          {currencySymbol}
+                          {entry.amount.toFixed(2)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </>
           )}
