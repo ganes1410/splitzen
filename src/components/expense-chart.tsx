@@ -92,34 +92,74 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
             </p>
           ) : (
             <>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={expenseShares}
-                    dataKey="amount"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    fill="#8884d8"
-                    label
-                  >
-                    {expenseShares.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-center">
+                    Expense Shares
+                  </h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={expenseShares}
+                        dataKey="amount"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        label={(entry) => `${entry.name}: ${currencySymbol}${entry.amount.toFixed(2)}`}
+                      >
+                        {expenseShares.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: number) => [
+                          `${currencySymbol}${value.toFixed(2)}`,
+                          "Share",
+                        ]}
                       />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [
-                      `${currencySymbol}${value.toFixed(2)}`,
-                      "Share",
-                    ]}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-center">
+                    Total Paid
+                  </h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={totalPaid}
+                        dataKey="amount"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        label={(entry) => `${entry.name}: ${currencySymbol}${entry.amount.toFixed(2)}`}
+                      >
+                        {totalPaid.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: number) => [
+                          `${currencySymbol}${value.toFixed(2)}`,
+                          "Paid",
+                        ]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-xl font-semibold mb-2 text-foreground">
