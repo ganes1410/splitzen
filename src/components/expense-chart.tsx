@@ -8,6 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
   Cell,
+  LabelList,
 } from "recharts";
 import { Doc } from "../../convex/_generated/dataModel";
 import { getCurrencySymbol } from "@/lib/currencies";
@@ -16,7 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { TrendingUp, Users, Wallet } from "lucide-react";
+import { ChevronDown, Wallet } from "lucide-react";
 
 interface ExpenseChartProps {
   expenses: (Doc<"expenses"> & { category?: Doc<"categories"> | null })[];
@@ -35,8 +36,6 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
 
   const {
     totalSpending,
-    yourShare,
-    netBalance,
     categorySpending,
     memberSpending,
   } = React.useMemo(() => {
@@ -75,11 +74,9 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
       categoryAmounts[categoryId].amount += expense.amount;
     });
 
-    const yourShare = currentUser ? userShares[currentUser._id] : 0;
-    const yourPaid = currentUser ? userPaid[currentUser._id] : 0;
-    const netBalance = yourPaid - yourShare;
-
-    const categorySpendingData = Object.values(categoryAmounts).filter(c => c.amount > 0);
+    const categorySpendingData = Object.values(categoryAmounts)
+      .filter(c => c.amount > 0)
+      .sort((a, b) => b.amount - a.amount); // Sort by amount descending
 
     const memberSpendingData = users.map(user => ({
       name: user.name,
@@ -90,8 +87,6 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
 
     return {
       totalSpending,
-      yourShare,
-      netBalance,
       categorySpending: categorySpendingData,
       memberSpending: memberSpendingData,
     };
@@ -101,75 +96,77 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
 
   return (
     <section className="space-y-4 border-t pt-6">
-      <h2 className="text-2xl font-bold text-primary mb-4">Expense Summary</h2>
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          title="Total Group Spending"
-          value={`${currencySymbol}${totalSpending.toFixed(2)}`}
-          icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
-        />
-        <StatCard
-          title="Your Personal Share"
-          value={`${currencySymbol}${yourShare.toFixed(2)}`}
-          icon={<Users className="h-4 w-4 text-muted-foreground" />}
-        />
-        <StatCard
-          title="Your Net Balance"
-          value={`${currencySymbol}${netBalance.toFixed(2)}`}
-          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-        />
-      </div>
-      <Tabs defaultValue="categories" className="mt-4">
-        <TabsList>
-          <TabsTrigger value="categories">Category Spending</TabsTrigger>
-          <TabsTrigger value="members">Member Spending</TabsTrigger>
-        </TabsList>
-        <TabsContent value="categories">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={categorySpending} layout="vertical">
-              <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" width={100} tickLine={false} axisLine={false} />
-              <Tooltip
-                formatter={(value: number) => [
-                  `${currencySymbol}${value.toFixed(2)}`,
-                  "Spent",
-                ]}
-                cursor={{ fill: "transparent" }}
-              />
-              <Legend />
-              <Bar dataKey="amount" fill="#8884d8" radius={[0, 4, 4, 0]}>
-                {categorySpending.map((entry) => (
-                  <Cell key={`cell-${entry.name}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </TabsContent>
-        <TabsContent value="members">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead className="text-right">Paid</TableHead>
-                <TableHead className="text-right">Share</TableHead>
-                <TableHead className="text-right">Balance</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {memberSpending.map((member) => (
-                <TableRow key={member.name}>
-                  <TableCell>{member.name}</TableCell>
-                  <TableCell className="text-right">{`${currencySymbol}${member.paid.toFixed(2)}`}</TableCell>
-                  <TableCell className="text-right">{`${currencySymbol}${member.share.toFixed(2)}`}</TableCell>
-                  <TableCell className={`text-right font-semibold ${member.balance > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {`${currencySymbol}${member.balance.toFixed(2)}`}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TabsContent>
-      </Tabs>
+      <details className="group">
+        <summary className="flex justify-between items-center cursor-pointer text-2xl font-bold text-primary mb-4">
+          Expense Summary
+          <ChevronDown className="h-6 w-6 transform transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="mt-4">
+          <div className="grid gap-4 md:grid-cols-1">
+            <StatCard
+              title="Total Group Spending"
+              value={`${currencySymbol}${totalSpending.toFixed(2)}`}
+              icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
+            />
+          </div>
+          <Tabs defaultValue="categories" className="mt-4">
+            <TabsList>
+              <TabsTrigger value="categories">Category Spending</TabsTrigger>
+              <TabsTrigger value="members">Member Spending</TabsTrigger>
+            </TabsList>
+            <TabsContent value="categories">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={categorySpending} layout="vertical">
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" width={100} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${currencySymbol}${value.toFixed(2)}`,
+                      "Spent",
+                    ]}
+                    cursor={{ fill: "transparent" }}
+                  />
+                  <Legend />
+                  <Bar dataKey="amount" fill="#8884d8" radius={[0, 4, 4, 0]}>
+                    <LabelList
+                      dataKey="amount"
+                      position="right"
+                      formatter={(value: any) => `${currencySymbol}${value.toFixed(2)}`}
+                    />
+                    {categorySpending.map((entry) => (
+                      <Cell key={`cell-${entry.name}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </TabsContent>
+            <TabsContent value="members">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Member</TableHead>
+                    <TableHead className="text-right">Paid</TableHead>
+                    <TableHead className="text-right">Share</TableHead>
+                    <TableHead className="text-right">Balance</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {memberSpending.map((member) => (
+                    <TableRow key={member.name}>
+                      <TableCell>{member.name}</TableCell>
+                      <TableCell className="text-right">{`${currencySymbol}${member.paid.toFixed(2)}`}</TableCell>
+                      <TableCell className="text-right">{`${currencySymbol}${member.share.toFixed(2)}`}</TableCell>
+                      <TableCell className={`text-right font-semibold ${member.balance > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {`${currencySymbol}${member.balance.toFixed(2)}`}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </details>
     </section>
   );
 };
