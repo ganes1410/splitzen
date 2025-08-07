@@ -269,16 +269,31 @@ function ExpensesSection({
 
     return filtered.sort((a, b) => {
       if (sortBy === "date") {
-        return (
-          new Date(b.date as string).getTime() -
-          new Date(a.date as string).getTime()
-        );
+        const dateComparison = new Date(b.date as string).getTime() - new Date(a.date as string).getTime();
+        if (dateComparison !== 0) return dateComparison;
+        return b._creationTime - a._creationTime;
       } else if (sortBy === "amount") {
         return b.amount - a.amount;
       }
       return 0;
     });
   }, [expenses, sortBy, filterBy]);
+
+  const groupedExpenses = useMemo(() => {
+    if (!sortedAndFilteredExpenses) return {};
+    return sortedAndFilteredExpenses.reduce((acc, expense) => {
+      const date = new Date(expense.date || "").toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(expense);
+      return acc;
+    }, {} as Record<string, Expense[]>);
+  }, [sortedAndFilteredExpenses]);
 
   return (
     <section className="space-y-4 border-t mt-4 pt-4">
@@ -302,103 +317,113 @@ function ExpensesSection({
           </select>
         </div>
       </div>
-      {sortedAndFilteredExpenses?.length === 0 ? (
+      {Object.keys(groupedExpenses).length === 0 ? (
         <div className="text-muted-foreground">
           <p className="mb-2">No expenses yet.</p>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {sortedAndFilteredExpenses?.map((expense) => (
-            <li
-              key={expense._id}
-              className="p-4 border rounded-lg shadow-sm flex flex-col bg-card"
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      setExpandedExpenseIds((prev) =>
-                        prev.includes(expense._id)
-                          ? prev.filter((id) => id !== expense._id)
-                          : [...prev, expense._id]
-                      )
-                    }
+        <div className="space-y-4">
+          {Object.entries(groupedExpenses).map(([date, expensesOnDate]) => (
+            <div key={date}>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-2">
+                {date}
+              </h3>
+              <ul className="space-y-3">
+                {expensesOnDate.map((expense) => (
+                  <li
+                    key={expense._id}
+                    className="p-4 border rounded-lg shadow-sm flex flex-col bg-card"
                   >
-                    {expandedExpenseIds.includes(expense._id) ? (
-                      <ChevronDown className="h-4 w-4 text-foreground" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 text-foreground" />
-                    )}
-                  </Button>
-                  <div className="flex flex-col gap-1 w-full">
-                    <p className="text-base text-foreground">
-                      <span className="font-semibold">
-                        {getUserName(expense.payerId)}
-                      </span>{" "}
-                      paid{" "}
-                      <span className="font-semibold text-primary">
-                        {getCurrencySymbol(group?.currency)}
-                        {expense.amount.toFixed(2)}
-                      </span>{" "}
-                      for <span className="italic">{expense.description}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(expense.date || "").toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <Button
-                    onClick={() => {
-                      setCurrentExpense(expense);
-                      setShowExpenseDialog(true);
-                    }}
-                    size="sm"
-                    className="mr-2"
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      handleDeleteExpense(expense._id as Id<"expenses">)
-                    }
-                    variant="destructive"
-                    size="sm"
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-              {expandedExpenseIds.includes(expense._id) && (
-                <div className="mt-4 pt-4 border-t border-accent-foreground border-dashed">
-                  <h4 className="text-md font-semibold mb-2 text-primary">
-                    Split Details
-                  </h4>
-                  <ul className="flex flex-col gap-2">
-                    {expense.splitAmong.map((userId) => {
-                      const user = users?.find((u) => u._id === userId);
-                      const share = expense.amount / expense.splitAmong.length;
-                      return (
-                        <li
-                          key={userId}
-                          className="flex items-center text-sm text-muted-foreground w-50 justify-between"
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            setExpandedExpenseIds((prev) =>
+                              prev.includes(expense._id)
+                                ? prev.filter((id) => id !== expense._id)
+                                : [...prev, expense._id]
+                            )
+                          }
                         >
-                          <span>{user?.name || "Unknown"} </span>
-                          <span className="text-primary font-semibold ml-3">
-                            {getCurrencySymbol(group?.currency)}
-                            {share.toFixed(2)}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-            </li>
+                          {expandedExpenseIds.includes(expense._id) ? (
+                            <ChevronDown className="h-4 w-4 text-foreground" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-foreground" />
+                          )}
+                        </Button>
+                        <div className="flex flex-col gap-1 w-full">
+                          <p className="text-base text-foreground">
+                            <span className="font-semibold">
+                              {getUserName(expense.payerId)}
+                            </span>{" "}
+                            paid{" "}
+                            <span className="font-semibold text-primary">
+                              {getCurrencySymbol(group?.currency)}
+                              {expense.amount.toFixed(2)}
+                            </span>{" "}
+                            for{" "}
+                            <span className="font-semibold">
+                              {expense.description}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => {
+                            setCurrentExpense(expense);
+                            setShowExpenseDialog(true);
+                          }}
+                          size="sm"
+                          className="mr-2"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() =>
+                            handleDeleteExpense(expense._id as Id<"expenses">)
+                          }
+                          variant="destructive"
+                          size="sm"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                    {expandedExpenseIds.includes(expense._id) && (
+                      <div className="mt-4 pt-4 border-t border-accent-foreground border-dashed">
+                        <h4 className="text-md font-semibold mb-2 text-primary">
+                          Split Details
+                        </h4>
+                        <ul className="flex flex-col gap-2">
+                          {expense.splitAmong.map((userId) => {
+                            const user = users?.find((u) => u._id === userId);
+                            const share =
+                              expense.amount / expense.splitAmong.length;
+                            return (
+                              <li
+                                key={userId}
+                                className="flex items-center text-sm text-muted-foreground w-50 justify-between"
+                              >
+                                <span>{user?.name || "Unknown"} </span>
+                                <span className="text-primary font-semibold ml-3">
+                                  {getCurrencySymbol(group?.currency)}
+                                  {share.toFixed(2)}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </section>
   );
