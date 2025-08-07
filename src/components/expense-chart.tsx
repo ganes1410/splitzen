@@ -12,9 +12,10 @@ import { ChevronDown } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
 
 interface ExpenseChartProps {
-  expenses: Doc<"expenses">[];
+  expenses: (Doc<"expenses"> & { category?: Doc<"categories"> | null })[];
   group: Doc<"groups">;
   users: Doc<"users">[];
+  categories: Doc<"categories">[];
 }
 
 const COLORS = [
@@ -32,14 +33,20 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
   expenses,
   group,
   users,
+  categories,
 }) => {
-  const { expenseShares, totalPaid } = React.useMemo(() => {
+  const { expenseShares, totalPaid, categorySpending } = React.useMemo(() => {
     const userShares: { [key: string]: number } = {};
     const userPaid: { [key: string]: number } = {};
+    const categoryAmounts: { [key: string]: { name: string, color: string, amount: number } } = {};
 
     users.forEach((user) => {
       userShares[user.name] = 0;
       userPaid[user.name] = 0;
+    });
+
+    categories.forEach((category) => {
+      categoryAmounts[category._id] = { name: category.name, color: category.color, amount: 0 };
     });
 
     expenses.forEach((expense) => {
@@ -57,6 +64,26 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
       if (payer) {
         userPaid[payer.name] += expense.amount;
       }
+
+      // Calculate category spending
+      if (expense.categoryId) {
+        if (categoryAmounts[expense.categoryId]) {
+          categoryAmounts[expense.categoryId].amount += expense.amount;
+        } else {
+          // Handle case where category might not be in the initial list (e.g. deleted)
+          const uncategorized = "Uncategorized";
+          if (!categoryAmounts[uncategorized]) {
+            categoryAmounts[uncategorized] = { name: uncategorized, color: "#808080", amount: 0 };
+          }
+          categoryAmounts[uncategorized].amount += expense.amount;
+        }
+      } else {
+        const uncategorized = "Uncategorized";
+        if (!categoryAmounts[uncategorized]) {
+          categoryAmounts[uncategorized] = { name: uncategorized, color: "#808080", amount: 0 };
+        }
+        categoryAmounts[uncategorized].amount += expense.amount;
+      }
     });
 
     const expenseSharesData = Object.keys(userShares)
@@ -73,8 +100,10 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
       }))
       .filter((user) => user.amount > 0);
 
-    return { expenseShares: expenseSharesData, totalPaid: totalPaidData };
-  }, [expenses, users]);
+    const categorySpendingData = Object.values(categoryAmounts).filter(c => c.amount > 0);
+
+    return { expenseShares: expenseSharesData, totalPaid: totalPaidData, categorySpending: categorySpendingData };
+  }, [expenses, users, categories]);
 
   const currencySymbol = getCurrencySymbol(group?.currency);
 
@@ -92,7 +121,7 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
             </p>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <h3 className="text-xl font-semibold mb-2 text-center">
                     Expense Shares
@@ -159,8 +188,41 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-center">
+                    Category Spending
+                  </h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={categorySpending}
+                        dataKey="amount"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        label={(entry) => `${entry.name}: ${currencySymbol}${entry.amount.toFixed(2)}`}
+                      >
+                        {categorySpending.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.color || COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: number) => [
+                          `${currencySymbol}${value.toFixed(2)}`,
+                          "Spent",
+                        ]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <h3 className="text-xl font-semibold mb-2 text-foreground">
                     Expense Shares
@@ -186,6 +248,28 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
                   <ul className="space-y-2">
                     {totalPaid.map((entry, index) => (
                       <li key={index} className="flex items-center gap-x-2">
+                        <span className="text-muted-foreground">
+                          {entry.name}:
+                        </span>
+                        <span className="text-primary font-semibold">
+                          {currencySymbol}
+                          {entry.amount.toFixed(2)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-2 text-foreground">
+                    Category Spending
+                  </h3>
+                  <ul className="space-y-2">
+                    {categorySpending.map((entry, index) => (
+                      <li key={index} className="flex items-center gap-x-2">
+                        <div
+                          className="w-4 h-4 rounded-full mr-2"
+                          style={{ backgroundColor: entry.color }}
+                        />
                         <span className="text-muted-foreground">
                           {entry.name}:
                         </span>

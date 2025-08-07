@@ -3,7 +3,7 @@ import { useMutation, useQueries, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 
-type Expense = Doc<"expenses">;
+type Expense = Doc<"expenses"> & { category?: Doc<"categories"> | null };
 import { useState, useMemo, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -230,6 +230,7 @@ function ExpensesSection({
   expenses,
   group,
   users,
+  categories,
   handleDeleteExpense,
   setCurrentExpense,
   setShowExpenseDialog,
@@ -241,6 +242,7 @@ function ExpensesSection({
   expenses: Expense[] | undefined;
   group: Doc<"groups"> | null;
   users: Doc<"users">[] | undefined;
+  categories: Doc<"categories">[] | undefined;
   handleDeleteExpense: (expenseId: Id<"expenses">) => void;
   setCurrentExpense: (expense: Expense) => void;
   setShowExpenseDialog: (show: boolean) => void;
@@ -255,6 +257,10 @@ function ExpensesSection({
 
   const getUserName = (userId: string) => {
     return users?.find((user) => user._id === userId)?.name || "Unknown";
+  };
+
+  const getCategory = (categoryId: Id<"categories">) => {
+    return categories?.find((category) => category._id === categoryId);
   };
 
   const sortedAndFilteredExpenses = useMemo(() => {
@@ -329,97 +335,109 @@ function ExpensesSection({
                 {date}
               </h3>
               <ul className="space-y-3">
-                {expensesOnDate.map((expense) => (
-                  <li
-                    key={expense._id}
-                    className="p-4 border rounded-lg shadow-sm flex flex-col bg-card"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            setExpandedExpenseIds((prev) =>
-                              prev.includes(expense._id)
-                                ? prev.filter((id) => id !== expense._id)
-                                : [...prev, expense._id]
-                            )
-                          }
-                        >
-                          {expandedExpenseIds.includes(expense._id) ? (
-                            <ChevronDown className="h-4 w-4 text-foreground" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-foreground" />
-                          )}
-                        </Button>
-                        <div className="flex flex-col gap-1 w-full">
-                          <p className="text-base text-foreground">
-                            <span className="font-semibold">
-                              {getUserName(expense.payerId)}
-                            </span>{" "}
-                            paid{" "}
-                            <span className="font-semibold text-primary">
-                              {getCurrencySymbol(group?.currency)}
-                              {expense.amount.toFixed(2)}
-                            </span>{" "}
-                            for{" "}
-                            <span className="font-semibold">
-                              {expense.description}
-                            </span>
-                          </p>
+                {expensesOnDate.map((expense) => {
+                  const category = expense.categoryId ? getCategory(expense.categoryId) : null;
+                  return (
+                    <li
+                      key={expense._id}
+                      className="p-4 border rounded-lg shadow-sm flex flex-col bg-card"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              setExpandedExpenseIds((prev) =>
+                                prev.includes(expense._id)
+                                  ? prev.filter((id) => id !== expense._id)
+                                  : [...prev, expense._id]
+                              )
+                            }
+                          >
+                            {expandedExpenseIds.includes(expense._id) ? (
+                              <ChevronDown className="h-4 w-4 text-foreground" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-foreground" />
+                            )}
+                          </Button>
+                          <div className="flex flex-col gap-1 w-full">
+                            <p className="text-base text-foreground">
+                              <span className="font-semibold">
+                                {getUserName(expense.payerId)}
+                              </span>{" "}
+                              paid{" "}
+                              <span className="font-semibold text-primary">
+                                {getCurrencySymbol(group?.currency)}
+                                {expense.amount.toFixed(2)}
+                              </span>{" "}
+                              for{" "}
+                              <span className="font-semibold">
+                                {expense.description}
+                              </span>
+                            </p>
+                            {category && (
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <div
+                                  className="w-3 h-3 rounded-full mr-2"
+                                  style={{ backgroundColor: category.color }}
+                                />
+                                {category.name}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => {
+                              setCurrentExpense(expense);
+                              setShowExpenseDialog(true);
+                            }}
+                            size="sm"
+                            className="mr-2"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() =>
+                              handleDeleteExpense(expense._id as Id<"expenses">)
+                            }
+                            variant="destructive"
+                            size="sm"
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          onClick={() => {
-                            setCurrentExpense(expense);
-                            setShowExpenseDialog(true);
-                          }}
-                          size="sm"
-                          className="mr-2"
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          onClick={() =>
-                            handleDeleteExpense(expense._id as Id<"expenses">)
-                          }
-                          variant="destructive"
-                          size="sm"
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                    {expandedExpenseIds.includes(expense._id) && (
-                      <div className="mt-4 pt-4 border-t border-accent-foreground border-dashed">
-                        <h4 className="text-md font-semibold mb-2 text-primary">
-                          Split Details
-                        </h4>
-                        <ul className="flex flex-col gap-2">
-                          {expense.splitAmong.map((userId) => {
-                            const user = users?.find((u) => u._id === userId);
-                            const share =
-                              expense.amount / expense.splitAmong.length;
-                            return (
-                              <li
-                                key={userId}
-                                className="flex items-center text-sm text-muted-foreground w-50 justify-between"
-                              >
-                                <span>{user?.name || "Unknown"} </span>
-                                <span className="text-primary font-semibold ml-3">
-                                  {getCurrencySymbol(group?.currency)}
-                                  {share.toFixed(2)}
-                                </span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
-                  </li>
-                ))}
+                      {expandedExpenseIds.includes(expense._id) && (
+                        <div className="mt-4 pt-4 border-t border-accent-foreground border-dashed">
+                          <h4 className="text-md font-semibold mb-2 text-primary">
+                            Split Details
+                          </h4>
+                          <ul className="flex flex-col gap-2">
+                            {expense.splitAmong.map((userId) => {
+                              const user = users?.find((u) => u._id === userId);
+                              const share =
+                                expense.amount / expense.splitAmong.length;
+                              return (
+                                <li
+                                  key={userId}
+                                  className="flex items-center text-sm text-muted-foreground w-50 justify-between"
+                                >
+                                  <span>{user?.name || "Unknown"} </span>
+                                  <span className="text-primary font-semibold ml-3">
+                                    {getCurrencySymbol(group?.currency)}
+                                    {share.toFixed(2)}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
@@ -559,6 +577,9 @@ function GroupPage() {
   const balances = useQuery(api.balances.getBalances, {
     groupId: groupId as Id<"groups">,
   });
+  const categories = useQuery(api.categories.getCategoriesInGroup, {
+    groupId: groupId as Id<"groups">,
+  });
 
   const createSettlement = useMutation(api.settlements.create);
   const deleteGroup = useMutation(api.groups.deleteGroup);
@@ -584,12 +605,21 @@ function GroupPage() {
     undefined
   );
 
+  const expensesWithCategories = useMemo(() => {
+    if (!expenses || !categories) return [];
+    return expenses.map((expense) => ({
+      ...expense,
+      category: categories.find((c) => c._id === expense.categoryId),
+    }));
+  }, [expenses, categories]);
+
   // Loading state
   if (
     group === undefined ||
     expenses === undefined ||
     users === undefined ||
-    balances === undefined
+    balances === undefined ||
+    categories === undefined
   ) {
     return <GroupPageSkeleton />;
   }
@@ -643,16 +673,17 @@ function GroupPage() {
         currentExpense={currentExpense}
       />
 
-      {expenses && group && users && (
+      {expensesWithCategories && group && users && categories && (
         <Suspense fallback={null}>
-          <ExpenseChart expenses={expenses} group={group} users={users} />
+          <ExpenseChart expenses={expensesWithCategories} group={group} users={users} categories={categories} />
         </Suspense>
       )}
 
       <ExpensesSection
-        expenses={expenses}
+        expenses={expensesWithCategories}
         group={group}
         users={users}
+        categories={categories}
         handleDeleteExpense={handleDeleteExpense}
         setCurrentExpense={setCurrentExpense}
         setShowExpenseDialog={setShowExpenseDialog}
@@ -715,3 +746,4 @@ function GroupPage() {
     </div>
   );
 }
+

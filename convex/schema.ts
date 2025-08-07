@@ -25,6 +25,7 @@ export default defineSchema({
     description: v.string(),
     splitAmong: v.array(v.id("users")),
     date: v.optional(v.string()),
+    categoryId: v.optional(v.id("categories")),
   }),
   settlements: defineTable({
     groupId: v.id("groups"),
@@ -38,4 +39,9 @@ export default defineSchema({
     groupId: v.id("groups"),
     balance: v.number(),
   }).index("by_user_group", ["userId", "groupId"]),
+  categories: defineTable({
+    name: v.string(),
+    color: v.string(),
+    groupId: v.id("groups"),
+  }).index("by_group", ["groupId"]),
 });

@@ -3,10 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import type { Id } from "../../convex/_generated/dataModel";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { toast } from "sonner";
+import { CategoryCombobox } from "./category-combobox";
 
 interface ExpenseFormProps {
   groupId: Id<"groups">;
@@ -17,6 +18,7 @@ interface ExpenseFormProps {
     payerId: Id<"users">;
     splitAmong: Id<"users">[];
     date?: string;
+    categoryId?: Id<"categories">;
   };
   onSubmit: (data: {
     expenseId?: Id<"expenses">;
@@ -25,6 +27,7 @@ interface ExpenseFormProps {
     payerId: Id<"users">;
     splitAmong: Id<"users">[];
     date?: string;
+    categoryId?: Id<"categories">;
   }) => void;
   submitButtonText: string;
   onCancel: () => void;
@@ -38,6 +41,7 @@ const expenseSchema = z.object({
     .array(z.string())
     .min(1, "Please select at least one person to split with"),
   date: z.string().optional(),
+  categoryId: z.string().optional(),
 });
 
 export function ExpenseForm({
@@ -51,7 +55,7 @@ export function ExpenseForm({
   const [description, setDescription] = useState(
     initialData?.description || ""
   );
-  const [payerId, setPayerId] = useState<Id<"users"> | ""> (
+  const [payerId, setPayerId] = useState<Id<"users"> | "">(
     initialData?.payerId || ""
   );
   const [splitAmong, setSplitAmong] = useState<string[]>(
@@ -60,8 +64,13 @@ export function ExpenseForm({
   const [date, setDate] = useState(
     initialData?.date || new Date().toISOString().split("T")[0]
   );
+  const [categoryId, setCategoryId] = useState<Id<"categories"> | null>(
+    initialData?.categoryId || null
+  );
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
   const users = useQuery(api.users.getUsersInGroup, { groupId });
+  const categories = useQuery(api.categories.getCategoriesInGroup, { groupId });
+  const createCategory = useMutation(api.categories.createCategory);
   const amountInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -84,6 +93,7 @@ export function ExpenseForm({
       payerId,
       splitAmong,
       date,
+      categoryId: categoryId || undefined,
     });
 
     if (!result.success) {
@@ -98,16 +108,17 @@ export function ExpenseForm({
       payerId: result.data.payerId as Id<"users">,
       splitAmong: result.data.splitAmong as Id<"users">[],
       date: result.data.date,
+      categoryId: result.data.categoryId as Id<"categories"> | undefined,
     });
     toast.success("Expense added successfully!");
   };
 
-  if (users === undefined) {
-    return <div>Loading users...</div>;
+  if (users === undefined || categories === undefined) {
+    return <div>Loading...</div>;
   }
 
-  if (users === null) {
-    return <div>Error loading users.</div>;
+  if (users === null || categories === null) {
+    return <div>Error loading data.</div>;
   }
 
   const isFormValid =
@@ -214,6 +225,25 @@ export function ExpenseForm({
             {errors.find((e: z.ZodIssue) => e.path[0] === "payerId")?.message}
           </p>
         )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-1">
+          Category
+        </label>
+        <CategoryCombobox
+          categories={categories}
+          selectedCategoryId={categoryId}
+          onSelectCategory={(id) => setCategoryId(id as Id<"categories"> | null)}
+          onCreateCategory={async (categoryName) => {
+            const newCategoryId = await createCategory({
+              name: categoryName,
+              color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+              groupId,
+            });
+            return newCategoryId;
+          }}
+        />
       </div>
 
       <div>
