@@ -1,8 +1,7 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,14 +19,14 @@ export function CategoryCombobox({
   onCreateCategory,
 }: CategoryComboboxProps) {
   const [open, setOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleCreateCategory = async () => {
-    if (newCategoryName.trim() !== "") {
-      const newCategoryId = await onCreateCategory(newCategoryName.trim());
+    if (searchQuery.trim() !== "") {
+      const newCategoryId = await onCreateCategory(searchQuery.trim());
       if (newCategoryId) {
         onSelectCategory(newCategoryId);
-        setNewCategoryName("");
+        setSearchQuery("");
         setOpen(false);
       }
     }
@@ -36,6 +35,15 @@ export function CategoryCombobox({
   const selectedCategory = useMemo(() => {
     return categories.find((c) => c._id === selectedCategoryId);
   }, [categories, selectedCategoryId]);
+
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery) return categories;
+    return categories.filter((category) =>
+      category.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [categories, searchQuery]);
+
+  const showCreateButton = searchQuery && !filteredCategories.some(c => c.name.toLowerCase() === searchQuery.toLowerCase());
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -62,29 +70,20 @@ export function CategoryCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command>
-          <CommandInput placeholder="Search or create category..." />
+          <CommandInput
+            placeholder="Search or create category..."
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
-            <CommandEmpty>
-              <div className="p-2">
-                <p className="text-sm text-muted-foreground mb-2">No category found.</p>
-                <Input
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  placeholder="Create a new one..."
-                  className="mb-2"
-                />
-                <Button onClick={handleCreateCategory} className="w-full">
-                  Create Category
-                </Button>
-              </div>
-            </CommandEmpty>
             <CommandGroup>
-              {categories.map((category) => (
+              {filteredCategories.map((category) => (
                 <CommandItem
                   key={category._id}
                   value={category.name}
                   onSelect={() => {
                     onSelectCategory(category._id);
+                    setSearchQuery("");
                     setOpen(false);
                   }}
                 >
@@ -103,6 +102,14 @@ export function CategoryCombobox({
                   </div>
                 </CommandItem>
               ))}
+              {showCreateButton && (
+                <CommandItem
+                  onSelect={handleCreateCategory}
+                  className="text-primary cursor-pointer"
+                >
+                  Create "{searchQuery}"
+                </CommandItem>
+              )}
             </CommandGroup>
           </CommandList>
         </Command>
