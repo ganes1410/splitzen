@@ -52,7 +52,7 @@ const ExpenseChart = lazy(() =>
 export const Route = createFileRoute("/group/$groupId")({
   component: GroupPage,
   validateSearch: z.object({
-    sortBy: z.string().optional().default("date"),
+    sortBy: z.string().optional().default("dateDesc"),
     filterBy: z.string().optional().default(""),
   }),
   loader: async ({ params }) => {
@@ -275,12 +275,14 @@ function ExpensesSection({
 
     return filtered.sort((a, b) => {
       if (sortBy === "dateDesc") {
-        const dateComparison = new Date(b.date as string).getTime() - new Date(a.date as string).getTime();
-        if (dateComparison !== 0) return dateComparison;
+        const dateA = new Date(a.date as string).getTime();
+        const dateB = new Date(b.date as string).getTime();
+        if (dateB !== dateA) return dateB - dateA;
         return b._creationTime - a._creationTime;
       } else if (sortBy === "dateAsc") {
-        const dateComparison = new Date(a.date as string).getTime() - new Date(b.date as string).getTime();
-        if (dateComparison !== 0) return dateComparison;
+        const dateA = new Date(a.date as string).getTime();
+        const dateB = new Date(b.date as string).getTime();
+        if (dateA !== dateB) return dateA - dateB;
         return a._creationTime - b._creationTime;
       } else if (sortBy === "amount") {
         return b.amount - a.amount;
