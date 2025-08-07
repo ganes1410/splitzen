@@ -127,6 +127,7 @@ export function ExpenseForm({
           id="amount"
           name="amount"
           type="number"
+          inputMode="decimal"
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
