@@ -274,10 +274,14 @@ function ExpensesSection({
     if (!filtered) return [];
 
     return filtered.sort((a, b) => {
-      if (sortBy === "date") {
+      if (sortBy === "dateDesc") {
         const dateComparison = new Date(b.date as string).getTime() - new Date(a.date as string).getTime();
         if (dateComparison !== 0) return dateComparison;
         return b._creationTime - a._creationTime;
+      } else if (sortBy === "dateAsc") {
+        const dateComparison = new Date(a.date as string).getTime() - new Date(b.date as string).getTime();
+        if (dateComparison !== 0) return dateComparison;
+        return a._creationTime - b._creationTime;
       } else if (sortBy === "amount") {
         return b.amount - a.amount;
       }
@@ -318,7 +322,8 @@ function ExpensesSection({
             onChange={(e) => setSortBy(e.target.value)}
             className="flex h-10 w-32 md:w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="date">Sort by Date</option>
+            <option value="dateDesc">Sort by Date (Desc)</option>
+            <option value="dateAsc">Sort by Date (Asc)</option>
             <option value="amount">Sort by Amount</option>
           </select>
         </div>
