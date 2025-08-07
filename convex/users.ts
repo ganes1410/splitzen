@@ -153,6 +153,21 @@ export const getUserByRecordId = query({
   },
 });
 
+export const getCurrentUser = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return null;
+    }
+    return await ctx.db
+      .query("users")
+      .withIndex("by_userId", (q) =>
+        q.eq("userId", identity.subject)
+      )
+      .unique();
+  },
+});
+
 export const removeUserFromGroup = mutation({
   args: { userId: v.id("users"), groupId: v.id("groups") },
   handler: async (ctx, args) => {

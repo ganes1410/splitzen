@@ -1,15 +1,22 @@
 import React from "react";
 import {
-  PieChart,
-  Pie,
-  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 import { Doc } from "../../convex/_generated/dataModel";
-import { ChevronDown } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
+import { StatCard } from "./stat-card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { TrendingUp, Users, Wallet } from "lucide-react";
 
 interface ExpenseChartProps {
   expenses: (Doc<"expenses"> & { category?: Doc<"categories"> | null })[];
@@ -18,31 +25,29 @@ interface ExpenseChartProps {
   categories: Doc<"categories">[];
 }
 
-const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#A28DFF",
-  "#FF6B6B",
-  "#6BFFB8",
-  "#FFD16B",
-];
-
 export const ExpenseChart: React.FC<ExpenseChartProps> = ({
   expenses,
   group,
   users,
   categories,
 }) => {
-  const { expenseShares, totalPaid, categorySpending } = React.useMemo(() => {
+  const currentUser = useQuery(api.users.getCurrentUser);
+
+  const {
+    totalSpending,
+    yourShare,
+    netBalance,
+    categorySpending,
+    memberSpending,
+  } = React.useMemo(() => {
+    let totalSpending = 0;
     const userShares: { [key: string]: number } = {};
     const userPaid: { [key: string]: number } = {};
-    const categoryAmounts: { [key: string]: { name: string, color: string, amount: number } } = {};
+    const categoryAmounts: { [key: string]: { name: string; color: string; amount: number } } = {};
 
     users.forEach((user) => {
-      userShares[user.name] = 0;
-      userPaid[user.name] = 0;
+      userShares[user._id] = 0;
+      userPaid[user._id] = 0;
     });
 
     categories.forEach((category) => {
@@ -50,242 +55,121 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
     });
 
     expenses.forEach((expense) => {
-      // Calculate shares
+      totalSpending += expense.amount;
       const share = expense.amount / expense.splitAmong.length;
       expense.splitAmong.forEach((userId) => {
-        const user = users.find((u) => u._id === userId);
-        if (user) {
-          userShares[user.name] += share;
-        }
+        userShares[userId] += share;
       });
 
-      // Calculate total paid
-      const payer = users.find((user) => user._id === expense.payerId);
-      if (payer) {
-        userPaid[payer.name] += expense.amount;
-      }
+      userPaid[expense.payerId] += expense.amount;
 
-      // Calculate category spending
-      if (expense.categoryId) {
-        if (categoryAmounts[expense.categoryId]) {
-          categoryAmounts[expense.categoryId].amount += expense.amount;
-        } else {
-          // Handle case where category might not be in the initial list (e.g. deleted)
-          const uncategorized = "Uncategorized";
-          if (!categoryAmounts[uncategorized]) {
-            categoryAmounts[uncategorized] = { name: uncategorized, color: "#808080", amount: 0 };
-          }
-          categoryAmounts[uncategorized].amount += expense.amount;
-        }
-      } else {
-        const uncategorized = "Uncategorized";
-        if (!categoryAmounts[uncategorized]) {
-          categoryAmounts[uncategorized] = { name: uncategorized, color: "#808080", amount: 0 };
-        }
-        categoryAmounts[uncategorized].amount += expense.amount;
+      const categoryId = expense.categoryId || "uncategorized";
+      if (!categoryAmounts[categoryId]) {
+        const category = categories.find(c => c._id === categoryId);
+        categoryAmounts[categoryId] = { 
+          name: category?.name || "Uncategorized", 
+          color: category?.color || "#808080", 
+          amount: 0 
+        };
       }
+      categoryAmounts[categoryId].amount += expense.amount;
     });
 
-    const expenseSharesData = Object.keys(userShares)
-      .map((name) => ({
-        name,
-        amount: userShares[name],
-      }))
-      .filter((user) => user.amount > 0);
-
-    const totalPaidData = Object.keys(userPaid)
-      .map((name) => ({
-        name,
-        amount: userPaid[name],
-      }))
-      .filter((user) => user.amount > 0);
+    const yourShare = currentUser ? userShares[currentUser._id] : 0;
+    const yourPaid = currentUser ? userPaid[currentUser._id] : 0;
+    const netBalance = yourPaid - yourShare;
 
     const categorySpendingData = Object.values(categoryAmounts).filter(c => c.amount > 0);
 
-    return { expenseShares: expenseSharesData, totalPaid: totalPaidData, categorySpending: categorySpendingData };
-  }, [expenses, users, categories]);
+    const memberSpendingData = users.map(user => ({
+      name: user.name,
+      paid: userPaid[user._id],
+      share: userShares[user._id],
+      balance: userPaid[user._id] - userShares[user._id],
+    }));
+
+    return {
+      totalSpending,
+      yourShare,
+      netBalance,
+      categorySpending: categorySpendingData,
+      memberSpending: memberSpendingData,
+    };
+  }, [expenses, users, categories, currentUser]);
 
   const currencySymbol = getCurrencySymbol(group?.currency);
 
   return (
     <section className="space-y-4 border-t pt-6">
-      <details className="group">
-        <summary className="flex justify-between items-center cursor-pointer text-2xl font-bold text-primary">
-          Expense Summary
-          <ChevronDown className="h-6 w-6 transform transition-transform group-open:rotate-180" />
-        </summary>
-        <div className="mt-4">
-          {expenseShares.length === 0 ? (
-            <p className="text-muted-foreground italic">
-              No expenses to display.
-            </p>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-center">
-                    Expense Shares
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={expenseShares}
-                        dataKey="amount"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        fill="#8884d8"
-                        label={(entry) => `${entry.name}: ${currencySymbol}${entry.amount.toFixed(2)}`}
-                      >
-                        {expenseShares.map((_, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value: number) => [
-                          `${currencySymbol}${value.toFixed(2)}`,
-                          "Share",
-                        ]}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-center">
-                    Total Paid
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={totalPaid}
-                        dataKey="amount"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        fill="#8884d8"
-                        label={(entry) => `${entry.name}: ${currencySymbol}${entry.amount.toFixed(2)}`}
-                      >
-                        {totalPaid.map((_, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value: number) => [
-                          `${currencySymbol}${value.toFixed(2)}`,
-                          "Paid",
-                        ]}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-center">
-                    Category Spending
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={categorySpending}
-                        dataKey="amount"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        fill="#8884d8"
-                        label={(entry) => `${entry.name}: ${currencySymbol}${entry.amount.toFixed(2)}`}
-                      >
-                        {categorySpending.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={entry.color || COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value: number) => [
-                          `${currencySymbol}${value.toFixed(2)}`,
-                          "Spent",
-                        ]}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-foreground">
-                    Expense Shares
-                  </h3>
-                  <ul className="space-y-2">
-                    {expenseShares.map((entry, index) => (
-                      <li key={index} className="flex items-center gap-x-2">
-                        <span className="text-muted-foreground">
-                          {entry.name}:
-                        </span>
-                        <span className="text-primary font-semibold">
-                          {currencySymbol}
-                          {entry.amount.toFixed(2)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-foreground">
-                    Total Paid
-                  </h3>
-                  <ul className="space-y-2">
-                    {totalPaid.map((entry, index) => (
-                      <li key={index} className="flex items-center gap-x-2">
-                        <span className="text-muted-foreground">
-                          {entry.name}:
-                        </span>
-                        <span className="text-primary font-semibold">
-                          {currencySymbol}
-                          {entry.amount.toFixed(2)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-foreground">
-                    Category Spending
-                  </h3>
-                  <ul className="space-y-2">
-                    {categorySpending.map((entry, index) => (
-                      <li key={index} className="flex items-center gap-x-2">
-                        <div
-                          className="w-4 h-4 rounded-full mr-2"
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span className="text-muted-foreground">
-                          {entry.name}:
-                        </span>
-                        <span className="text-primary font-semibold">
-                          {currencySymbol}
-                          {entry.amount.toFixed(2)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </details>
+      <h2 className="text-2xl font-bold text-primary mb-4">Expense Summary</h2>
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard
+          title="Total Group Spending"
+          value={`${currencySymbol}${totalSpending.toFixed(2)}`}
+          icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
+        />
+        <StatCard
+          title="Your Personal Share"
+          value={`${currencySymbol}${yourShare.toFixed(2)}`}
+          icon={<Users className="h-4 w-4 text-muted-foreground" />}
+        />
+        <StatCard
+          title="Your Net Balance"
+          value={`${currencySymbol}${netBalance.toFixed(2)}`}
+          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+        />
+      </div>
+      <Tabs defaultValue="categories" className="mt-4">
+        <TabsList>
+          <TabsTrigger value="categories">Category Spending</TabsTrigger>
+          <TabsTrigger value="members">Member Spending</TabsTrigger>
+        </TabsList>
+        <TabsContent value="categories">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={categorySpending} layout="vertical">
+              <XAxis type="number" hide />
+              <YAxis dataKey="name" type="category" width={100} tickLine={false} axisLine={false} />
+              <Tooltip
+                formatter={(value: number) => [
+                  `${currencySymbol}${value.toFixed(2)}`,
+                  "Spent",
+                ]}
+                cursor={{ fill: "transparent" }}
+              />
+              <Legend />
+              <Bar dataKey="amount" fill="#8884d8" radius={[0, 4, 4, 0]}>
+                {categorySpending.map((entry) => (
+                  <Cell key={`cell-${entry.name}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </TabsContent>
+        <TabsContent value="members">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead className="text-right">Paid</TableHead>
+                <TableHead className="text-right">Share</TableHead>
+                <TableHead className="text-right">Balance</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {memberSpending.map((member) => (
+                <TableRow key={member.name}>
+                  <TableCell>{member.name}</TableCell>
+                  <TableCell className="text-right">{`${currencySymbol}${member.paid.toFixed(2)}`}</TableCell>
+                  <TableCell className="text-right">{`${currencySymbol}${member.share.toFixed(2)}`}</TableCell>
+                  <TableCell className={`text-right font-semibold ${member.balance > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {`${currencySymbol}${member.balance.toFixed(2)}`}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabsContent>
+      </Tabs>
     </section>
   );
 };

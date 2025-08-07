@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import react from "@vitejs/plugin-react";
 import tsConfigPaths from "vite-tsconfig-paths";
 
 // https://vitejs.dev/config/
@@ -11,6 +12,7 @@ export default defineConfig({
   plugins: [
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({
+      customViteReactPlugin: true,
       sitemap: {
         enabled: true,
         host: "https://splitzen.vercel.app/",
@@ -20,6 +22,7 @@ export default defineConfig({
         enabled: true,
       },
     }),
+    react(),
     tailwindcss(),
   ],
   build: {
