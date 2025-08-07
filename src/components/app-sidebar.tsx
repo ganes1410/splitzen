@@ -100,7 +100,7 @@ const AppSidebar = ({ children }: { children: React.ReactNode }) => {
                             to="/group/$groupId"
                             params={{ groupId: group._id }}
                             search={{
-                              sortBy: "date",
+                              sortBy: "dateDesc",
                               filterBy: "",
                             }}
                             className="flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground rounded-md"
