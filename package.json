@@ -29,6 +29,7 @@
     "convex": "^1.25.2",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.525.0",
+    "nitro": "3.0.1-alpha.1",
     "react": "^19.0.0",
     "react-day-picker": "^9.11.3",
     "react-dom": "^19.0.0",
