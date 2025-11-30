@@ -35,7 +35,7 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
   categories,
 }) => {
   const currentUser = useQuery(api.users.getCurrentUser);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const {
     totalSpending,
@@ -97,6 +97,10 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
 
   const currencySymbol = getCurrencySymbol(group?.currency);
 
+  const truncateLabel = (label: string) => {
+    return label.length > 15 ? `${label.substring(0, 15)}...` : label;
+  };
+
   return (
     <Card className="shadow-sm">
       <CardHeader className="pb-3">
@@ -147,31 +151,41 @@ export const ExpenseChart: React.FC<ExpenseChartProps> = ({
 
             <TabsContent value="categories" className="mt-4">
               {categorySpending.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={categorySpending} layout="vertical" margin={{ right: 80 }}>
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" width={100} tickLine={false} axisLine={false} />
-                    <Tooltip
-                      formatter={(value: number) => [
-                        `${currencySymbol}${value.toFixed(2)}`,
-                        "Spent",
-                      ]}
-                      cursor={{ fill: "transparent" }}
-                    />
-                    <Legend />
-                    <Bar dataKey="amount" fill="#8884d8" radius={[0, 4, 4, 0]}>
-                      <LabelList
-                        dataKey="amount"
-                        position="right"
-                        formatter={(value: any) => `${currencySymbol}${value.toFixed(2)}`}
-                        className="fill-foreground text-sm font-medium"
+                <div style={{ width: '100%', height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={categorySpending} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                      <XAxis type="number" hide />
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        width={120}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={truncateLabel}
+                        style={{ fontSize: '12px' }}
                       />
-                      {categorySpending.map((entry) => (
-                        <Cell key={`cell-${entry.name}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                      <Tooltip
+                        formatter={(value: number) => [
+                          `${currencySymbol}${value.toFixed(2)}`,
+                          "Spent",
+                        ]}
+                        cursor={{ fill: "transparent" }}
+                      />
+                      <Legend />
+                      <Bar dataKey="amount" fill="#8884d8" radius={[0, 4, 4, 0]} barSize={30}>
+                        <LabelList
+                          dataKey="amount"
+                          position="right"
+                          formatter={(value: any) => `${currencySymbol}${value.toFixed(2)}`}
+                          className="fill-foreground text-sm font-medium"
+                        />
+                        {categorySpending.map((entry) => (
+                          <Cell key={`cell-${entry.name}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   No category data available

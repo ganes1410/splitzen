@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JoinInviteCodeRouteImport } from './routes/join/$inviteCode'
 import { Route as GroupGroupIdRouteImport } from './routes/group/$groupId'
 import { Route as GroupIdSettingsRouteImport } from './routes/$groupId.settings'
 
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NewRoute = NewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -44,6 +50,7 @@ const GroupIdSettingsRoute = GroupIdSettingsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/new': typeof NewRoute
+  '/profile': typeof ProfileRoute
   '/$groupId/settings': typeof GroupIdSettingsRoute
   '/group/$groupId': typeof GroupGroupIdRoute
   '/join/$inviteCode': typeof JoinInviteCodeRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/new': typeof NewRoute
+  '/profile': typeof ProfileRoute
   '/$groupId/settings': typeof GroupIdSettingsRoute
   '/group/$groupId': typeof GroupGroupIdRoute
   '/join/$inviteCode': typeof JoinInviteCodeRoute
@@ -59,6 +67,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/new': typeof NewRoute
+  '/profile': typeof ProfileRoute
   '/$groupId/settings': typeof GroupIdSettingsRoute
   '/group/$groupId': typeof GroupGroupIdRoute
   '/join/$inviteCode': typeof JoinInviteCodeRoute
@@ -68,6 +77,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/new'
+    | '/profile'
     | '/$groupId/settings'
     | '/group/$groupId'
     | '/join/$inviteCode'
@@ -75,6 +85,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/new'
+    | '/profile'
     | '/$groupId/settings'
     | '/group/$groupId'
     | '/join/$inviteCode'
@@ -82,6 +93,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/new'
+    | '/profile'
     | '/$groupId/settings'
     | '/group/$groupId'
     | '/join/$inviteCode'
@@ -90,6 +102,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   NewRoute: typeof NewRoute
+  ProfileRoute: typeof ProfileRoute
   GroupIdSettingsRoute: typeof GroupIdSettingsRoute
   GroupGroupIdRoute: typeof GroupGroupIdRoute
   JoinInviteCodeRoute: typeof JoinInviteCodeRoute
@@ -97,6 +110,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/new': {
       id: '/new'
       path: '/new'
@@ -138,6 +158,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NewRoute: NewRoute,
+  ProfileRoute: ProfileRoute,
   GroupIdSettingsRoute: GroupIdSettingsRoute,
   GroupGroupIdRoute: GroupGroupIdRoute,
   JoinInviteCodeRoute: JoinInviteCodeRoute,

@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { UserProvider } from "@/context/UserContext";
 import appCss from "@/styles/app.css?url";
 import AppSidebar from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
@@ -48,10 +49,12 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <AppSidebar>
-        <Outlet />
-      </AppSidebar>
-      <TanStackRouterDevtools position="bottom-right" />
+      <UserProvider>
+        <AppSidebar>
+          <Outlet />
+        </AppSidebar>
+        <TanStackRouterDevtools position="bottom-right" />
+      </UserProvider>
     </RootDocument>
   );
 }

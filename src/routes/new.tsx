@@ -1,8 +1,9 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useConvex, useMutation } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/context/UserContext";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { currencies } from "@/lib/currencies";
@@ -39,19 +40,13 @@ function CreateGroup() {
   const [currency, setCurrency] = useState("INR");
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
   const [loading, setLoading] = useState(false);
-  const convex = useConvex();
+  const { userId, setUserId, userName: contextUserName } = useUser();
 
-  if (userName.length === 0 && localStorage.getItem("userId")) {
-    convex
-      .query(api.users.getUser, {
-        userId: localStorage.getItem("userId") ?? "",
-      })
-      .then((user) => {
-        if (user) {
-          setUserName(user.name || "");
-        }
-      });
-  }
+  useEffect(() => {
+    if (contextUserName) {
+      setUserName(contextUserName);
+    }
+  }, [contextUserName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +56,7 @@ function CreateGroup() {
     const trimmedGroupName = groupName.trim();
     const trimmedUserName = userName.trim();
 
-    const isUserPresent = Boolean(localStorage.getItem("userId"));
+    const isUserPresent = !!userId;
 
     const result = isUserPresent
       ? createGroupWithUserSchema.safeParse({
@@ -81,17 +76,14 @@ function CreateGroup() {
     }
 
     try {
-      let userId = localStorage.getItem("userId") || undefined;
       const { groupId, userId: newUserId } = await createGroup({
         groupName: trimmedGroupName,
         currency: result.data.currency,
-        userId,
-        userName: isUserPresent
-          ? (localStorage.getItem("userId") ?? "")
-          : trimmedUserName,
+        userId: userId || undefined,
+        userName: isUserPresent ? (contextUserName ?? "") : trimmedUserName,
       });
       if (!userId) {
-        localStorage.setItem("userId", newUserId);
+        setUserId(newUserId);
       }
       router.navigate({ to: `/group/${groupId}` });
     } catch (error) {
@@ -153,9 +145,7 @@ function CreateGroup() {
                 placeholder="e.g., Alice"
                 className="h-11"
                 disabled={
-                  loading ||
-                  (typeof window !== "undefined" &&
-                    localStorage.getItem("userId") !== null)
+                  loading || !!userId
                 }
               />
               {errors?.find((e) => e.path[0] === "userName") && (

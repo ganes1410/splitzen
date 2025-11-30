@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
+import { useUser } from "@/context/UserContext";
 
 export const Route = createFileRoute("/join/$inviteCode")({
   component: JoinGroup,
@@ -22,8 +23,8 @@ function JoinGroup() {
   const [errors, setErrors] = useState<z.ZodIssue[] | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const { userId, setUserId } = useUser();
   const group = useQuery(api.groups.getGroupbyInviteCode, { inviteCode });
-  const userId = localStorage.getItem("userId");
   const userMembership = useQuery(
     api.users.getMembership,
     userId && group ? { userId, groupId: group._id } : "skip"
@@ -62,7 +63,7 @@ function JoinGroup() {
         userId,
       });
       if (!userId) {
-        localStorage.setItem("userId", newUserId);
+        setUserId(newUserId);
       }
       router.navigate({ to: `/group/${groupId}` });
     } catch (error: any) {

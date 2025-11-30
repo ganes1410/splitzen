@@ -19,7 +19,7 @@ import { useQuery } from "convex/react";
 import { useRouterState, Outlet, Link } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { ThemeToggle } from "./theme-toggle";
-import { useEffect, useState } from "react";
+import { useUser } from "@/context/UserContext";
 
 const AppHeader = () => {
   const { isMobile, setOpenMobile } = useSidebar();
@@ -48,17 +48,11 @@ const AppHeader = () => {
 };
 
 const AppSidebar = ({ children }: { children: React.ReactNode }) => {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-    setUserId(localStorage.getItem("userId"));
-  }, []);
+  const { userId, isLoading } = useUser();
 
   const groups = useQuery(
     api.groups.getGroupsForUser,
-    userId === null ? "skip" : { userId }
+    userId ? { userId } : "skip"
   );
   const routerState = useRouterState();
   const currentGroupId = routerState.location.pathname.startsWith("/group/")
@@ -85,7 +79,7 @@ const AppSidebar = ({ children }: { children: React.ReactNode }) => {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {!hasMounted || (userId && groups === undefined) ? (
+                  {isLoading || (userId && groups === undefined) ? (
                     <div className="flex flex-col items-center justify-center text-center px-4 py-8 space-y-3">
                       <p className="text-sm font-medium text-muted-foreground">
                         Loading groups...
@@ -134,6 +128,15 @@ const AppSidebar = ({ children }: { children: React.ReactNode }) => {
           </SidebarContent>
 
           <SidebarFooter className="border-t p-2">
+            <Link
+              to="/profile"
+              className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                <Users className="h-3 w-3" />
+              </div>
+              <span>Profile & Recovery</span>
+            </Link>
             <ThemeToggle />
           </SidebarFooter>
         </Sidebar>

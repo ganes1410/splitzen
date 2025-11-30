@@ -194,9 +194,16 @@ export function ExpensesSection({
                                                                 )}
                                                             </div>
                                                             <div className="min-w-0">
-                                                                <p className="font-medium truncate text-foreground">
-                                                                    {expense.description}
-                                                                </p>
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="font-medium truncate text-foreground">
+                                                                        {expense.description}
+                                                                    </p>
+                                                                    {expense.category && (
+                                                                        <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium truncate max-w-[120px]">
+                                                                            {expense.category.name}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                                 <p className="text-sm text-muted-foreground truncate">
                                                                     <span className="font-medium text-foreground">
                                                                         {getUserName(expense.payerId)}

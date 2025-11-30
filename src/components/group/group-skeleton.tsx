@@ -15,7 +15,7 @@ export function GroupPageSkeleton() {
             </div>
 
             <div className="mb-6">
-                <Skeleton className="h-[300px] w-full rounded-xl" />
+                <Skeleton className="h-[80px] w-full rounded-xl" />
             </div>
 
             <div className="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">

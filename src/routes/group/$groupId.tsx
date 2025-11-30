@@ -185,7 +185,7 @@ function GroupPage() {
 
       {expensesWithCategories && group && users && categories && (
         <div className="mb-6">
-          <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
+          <Suspense fallback={<Skeleton className="h-[80px] w-full" />}>
             <ExpenseChart
               expenses={expensesWithCategories}
               group={group}
