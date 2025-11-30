@@ -11,6 +11,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import appCss from "@/styles/app.css?url";
 import AppSidebar from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { injectSpeedInsights } from '@vercel/speed-insights';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -56,6 +57,7 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+  injectSpeedInsights();
   return (
     <html suppressHydrationWarning>
       <head>
