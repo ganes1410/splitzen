@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Id } from "../../convex/_generated/dataModel";
 import { toast } from "sonner";
 
@@ -58,60 +65,53 @@ export function SettleForm({
   };
 
   return (
-    <form
-      onSubmit={handleSettle}
-      className="space-y-4 p-2 rounded-lg shadow-md"
-    >
-      <div>
+    <form onSubmit={handleSettle} className="space-y-5">
+      <div className="space-y-2">
         <label
           htmlFor="settle-from"
-          className="block text-sm font-medium text-foreground mb-1"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           From
         </label>
-        <select
-          id="settle-from"
-          name="settle-from"
-          value={settleFrom}
-          onChange={(e) => setSettleFrom(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">Select User</option>
-          {users?.map((user) => (
-            <option key={user._id} value={user._id}>
-              {user.name}
-            </option>
-          ))}
-        </select>
+        <Select value={settleFrom} onValueChange={setSettleFrom}>
+          <SelectTrigger className="h-11">
+            <SelectValue placeholder="Select User" />
+          </SelectTrigger>
+          <SelectContent>
+            {users?.map((user) => (
+              <SelectItem key={user._id} value={user._id}>
+                {user.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div>
+      <div className="space-y-2">
         <label
           htmlFor="settle-to"
-          className="block text-sm font-medium text-foreground mb-1"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           To
         </label>
-        <select
-          id="settle-to"
-          name="settle-to"
-          value={settleTo}
-          onChange={(e) => setSettleTo(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">Select User</option>
-          {users?.map((user) => (
-            <option key={user._id} value={user._id}>
-              {user.name}
-            </option>
-          ))}
-        </select>
+        <Select value={settleTo} onValueChange={setSettleTo}>
+          <SelectTrigger className="h-11">
+            <SelectValue placeholder="Select User" />
+          </SelectTrigger>
+          <SelectContent>
+            {users?.map((user) => (
+              <SelectItem key={user._id} value={user._id}>
+                {user.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div>
+      <div className="space-y-2">
         <label
           htmlFor="settle-amount"
-          className="block text-sm font-medium text-foreground mb-1"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           Amount
         </label>
@@ -119,17 +119,18 @@ export function SettleForm({
           id="settle-amount"
           name="settle-amount"
           type="number"
+          step="0.01"
           value={settleAmount}
           onChange={(e) => setSettleAmount(e.target.value)}
           placeholder="Enter amount"
-          className="w-full"
+          className="h-11"
         />
       </div>
 
-      <div>
+      <div className="space-y-2">
         <label
           htmlFor="settle-note"
-          className="block text-sm font-medium text-foreground mb-1"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           Note (Optional)
         </label>
@@ -139,12 +140,12 @@ export function SettleForm({
           value={settleNote}
           onChange={(e) => setSettleNote(e.target.value)}
           placeholder="Add a note"
-          className="w-full"
+          className="h-11"
         />
       </div>
 
-      <div className="flex gap-2 flex-col gap-y-4 mt-6">
-        <Button type="submit" className="w-full">
+      <div className="flex gap-3 pt-2">
+        <Button type="submit" className="flex-1 h-11">
           Record Settlement
         </Button>
 
@@ -152,7 +153,7 @@ export function SettleForm({
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="w-full"
+          className="flex-1 h-11"
         >
           Cancel
         </Button>

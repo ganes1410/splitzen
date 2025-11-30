@@ -8,6 +8,22 @@ import { api } from "../../convex/_generated/api";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { toast } from "sonner";
 import { CategoryCombobox } from "./category-combobox";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface ExpenseFormProps {
   groupId: Id<"groups">;
@@ -55,15 +71,16 @@ export function ExpenseForm({
   const [description, setDescription] = useState(
     initialData?.description || ""
   );
-  const [payerId, setPayerId] = useState<Id<"users"> | "">(
+  const [payerId, setPayerId] = useState<string>(
     initialData?.payerId || ""
   );
   const [splitAmong, setSplitAmong] = useState<string[]>(
     initialData?.splitAmong || []
   );
-  const [date, setDate] = useState(
-    initialData?.date || new Date().toISOString().split("T")[0]
+  const [date, setDate] = useState<Date | undefined>(
+    initialData?.date ? new Date(initialData.date) : new Date()
   );
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [categoryId, setCategoryId] = useState<Id<"categories"> | null>(
     initialData?.categoryId || null
   );
@@ -92,7 +109,7 @@ export function ExpenseForm({
       description,
       payerId,
       splitAmong,
-      date,
+      date: date?.toISOString().split("T")[0],
       categoryId: categoryId || undefined,
     });
 
@@ -110,54 +127,95 @@ export function ExpenseForm({
       date: result.data.date,
       categoryId: result.data.categoryId as Id<"categories"> | undefined,
     });
-    toast.success("Expense added successfully!");
+    toast.success("Expense saved successfully!");
   };
 
   if (users === undefined || categories === undefined) {
-    return <div>Loading...</div>;
+    return <div className="p-6 text-center text-muted-foreground">Loading...</div>;
   }
 
   if (users === null || categories === null) {
-    return <div>Error loading data.</div>;
+    return <div className="p-6 text-center text-destructive">Error loading data.</div>;
   }
 
   const isFormValid =
     users && payerId && amount && description && splitAmong.length > 0;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-2 rounded-lg">
-      <div>
-        <label
-          htmlFor="amount"
-          className="block text-sm font-medium text-foreground mb-1"
-        >
-          Amount
-        </label>
-        <Input
-          ref={amountInputRef}
-          id="amount"
-          name="amount"
-          type="number"
-          inputMode="decimal"
-          step="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="e.g., 25.50"
-          className="w-full"
-        />
-        {errors?.find((e: z.ZodIssue) => e.path[0] === "amount") && (
-          <p className="text-destructive text-sm mt-1">
-            {errors.find((e: z.ZodIssue) => e.path[0] === "amount")?.message}
-          </p>
-        )}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label
+            htmlFor="amount"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Amount *
+          </label>
+          <Input
+            ref={amountInputRef}
+            id="amount"
+            name="amount"
+            type="number"
+            inputMode="decimal"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0.00"
+            className="h-11"
+          />
+          {errors?.find((e: z.ZodIssue) => e.path[0] === "amount") && (
+            <p className="text-destructive text-sm">
+              {errors.find((e: z.ZodIssue) => e.path[0] === "amount")?.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="date"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Date *
+          </label>
+          <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full h-11 justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(newDate) => {
+                  setDate(newDate);
+                  setDatePickerOpen(false);
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          {errors?.find((e: z.ZodIssue) => e.path[0] === "date") && (
+            <p className="text-destructive text-sm">
+              {errors.find((e: z.ZodIssue) => e.path[0] === "date")?.message}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div>
+      <div className="space-y-2">
         <label
           htmlFor="description"
-          className="block text-sm font-medium text-foreground mb-1"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
-          Description
+          Description *
         </label>
         <Input
           id="description"
@@ -165,10 +223,10 @@ export function ExpenseForm({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g., Dinner at Italian restaurant"
-          className="w-full"
+          className="h-11"
         />
         {errors?.find((e: z.ZodIssue) => e.path[0] === "description") && (
-          <p className="text-destructive text-sm mt-1">
+          <p className="text-destructive text-sm">
             {
               errors.find((e: z.ZodIssue) => e.path[0] === "description")
                 ?.message
@@ -177,78 +235,56 @@ export function ExpenseForm({
         )}
       </div>
 
-      <div>
-        <label
-          htmlFor="date"
-          className="block text-sm font-medium text-foreground mb-1"
-        >
-          Date
-        </label>
-        <Input
-          id="date"
-          name="date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="w-full date-picker-dark-fix"
-        />
-        {errors?.find((e: z.ZodIssue) => e.path[0] === "date") && (
-          <p className="text-destructive text-sm mt-1">
-            {errors.find((e: z.ZodIssue) => e.path[0] === "date")?.message}
-          </p>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label
+            htmlFor="payer"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Paid By *
+          </label>
+          <Select value={payerId} onValueChange={setPayerId}>
+            <SelectTrigger className="h-11">
+              <SelectValue placeholder="Select Payer" />
+            </SelectTrigger>
+            <SelectContent>
+              {users?.map((user) => (
+                <SelectItem key={user._id} value={user._id}>
+                  {user.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors?.find((e: z.ZodIssue) => e.path[0] === "payerId") && (
+            <p className="text-destructive text-sm">
+              {errors.find((e: z.ZodIssue) => e.path[0] === "payerId")?.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Category
+          </label>
+          <CategoryCombobox
+            categories={categories}
+            selectedCategoryId={categoryId}
+            onSelectCategory={(id) => setCategoryId(id as Id<"categories"> | null)}
+            onCreateCategory={async (categoryName) => {
+              const newCategoryId = await createCategory({
+                name: categoryName,
+                color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+                groupId,
+              });
+              return newCategoryId;
+            }}
+          />
+        </div>
       </div>
 
-      <div>
-        <label
-          htmlFor="payer"
-          className="block text-sm font-medium text-foreground mb-1"
-        >
-          Paid By
-        </label>
-        <select
-          id="payer"
-          name="payer"
-          value={payerId}
-          onChange={(e) => setPayerId(e.target.value as Id<"users">)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">Select Payer</option>
-          {users?.map((user) => (
-            <option key={user._id} value={user._id}>
-              {user.name}
-            </option>
-          ))}
-        </select>
-        {errors?.find((e: z.ZodIssue) => e.path[0] === "payerId") && (
-          <p className="text-destructive text-sm mt-1">
-            {errors.find((e: z.ZodIssue) => e.path[0] === "payerId")?.message}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-1">
-          Category
-        </label>
-        <CategoryCombobox
-          categories={categories}
-          selectedCategoryId={categoryId}
-          onSelectCategory={(id) => setCategoryId(id as Id<"categories"> | null)}
-          onCreateCategory={async (categoryName) => {
-            const newCategoryId = await createCategory({
-              name: categoryName,
-              color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-              groupId,
-            });
-            return newCategoryId;
-          }}
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-1">
-          Split Among
+      <div className="space-y-2">
+        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          Split Among *
         </label>
         <MultiSelect
           options={users.map((user) => ({
@@ -259,7 +295,7 @@ export function ExpenseForm({
           onChange={setSplitAmong}
         />
         {errors?.find((e: z.ZodIssue) => e.path[0] === "splitAmong") && (
-          <p className="text-destructive text-sm mt-1">
+          <p className="text-destructive text-sm">
             {
               errors.find((e: z.ZodIssue) => e.path[0] === "splitAmong")
                 ?.message
@@ -274,11 +310,11 @@ export function ExpenseForm({
             e.path[0] as string
           )
         ) && (
-          <p className="text-destructive text-sm mt-1">{errors[0].message}</p>
+          <p className="text-destructive text-sm">{errors[0].message}</p>
         )}
 
-      <div className="flex gap-2 flex-col">
-        <Button type="submit" disabled={!isFormValid} className="w-full">
+      <div className="flex gap-3 pt-2">
+        <Button type="submit" disabled={!isFormValid} className="flex-1 h-11">
           {submitButtonText}
         </Button>
 
@@ -286,7 +322,7 @@ export function ExpenseForm({
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="w-full"
+          className="flex-1 h-11"
         >
           Cancel
         </Button>

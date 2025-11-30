@@ -5,6 +5,14 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { GroupSettingsForm } from "@/components/group-settings-form";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/$groupId/settings")({
   component: GroupSettingsPage,
@@ -25,73 +33,101 @@ function GroupSettingsPage() {
   const removeUserFromGroup = useMutation(api.users.removeUserFromGroup);
 
   if (!group || !users) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex flex-col sm:ml-40 px-4 py-6 max-w-4xl mx-auto w-full space-y-6">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <Skeleton className="h-6 w-32" />
+        </div>
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-[400px] w-full rounded-xl" />
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col sm:ml-40 px-3">
-      <div className="flex items-center mb-4">
+    <div className="flex flex-col sm:ml-40 px-4 py-6 max-w-4xl mx-auto w-full">
+      <div className="flex items-center mb-6">
         <Link
           to="/group/$groupId"
           params={{ groupId }}
           search={{
-            sortBy: "date",
+            sortBy: "dateDesc",
             filterBy: "",
           }}
           className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
         >
-          <Button variant="ghost" size="sm" className="px-2">
-            <ChevronLeft className="h-5 w-5" />
-            <span className="text-lg font-medium">Back to {group?.name}</span>
+          <Button variant="ghost" size="sm" className="pl-0 pr-2 hover:bg-transparent">
+            <ChevronLeft className="h-5 w-5 mr-1" />
+            <span className="text-base font-medium">Back to {group?.name}</span>
           </Button>
         </Link>
       </div>
-      <h1 className="text-3xl font-bold mb-4 text-primary">
-        {group?.name} - Settings
-      </h1>
-      <GroupSettingsForm
-        group={group}
-        allParticipants={users}
-        initialSelectedParticipants={users.map((u) => u._id)}
-        onSubmit={async (data) => {
-          await updateGroup({
-            groupId: group._id,
-            name: data.name,
-            currency: data.currency,
-          });
-          await updateGroupMembers({
-            groupId: group._id,
-            selectedParticipantIds: data.selectedParticipantIds,
-          });
-          router.navigate({
-            to: "/group/$groupId",
-            params: { groupId },
-            search: {
-              sortBy: "date",
-              filterBy: "",
-            },
-          });
-        }}
-        onCancel={() =>
-          router.navigate({
-            to: "/group/$groupId",
-            params: { groupId },
-            search: {
-              sortBy: "date",
-              filterBy: "",
-            },
-          })
-        }
-        addUserToGroup={async (name) => {
-          return await addUserToGroup({
-            name,
-            groupId: groupId as Id<"groups">,
-          });
-        }}
-        removeUserFromGroup={async (userId, groupId) => {
-          await removeUserFromGroup({ userId, groupId });
-        }}
-      />
+
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Group Settings
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your group details and members
+          </p>
+        </div>
+
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>General Settings</CardTitle>
+            <CardDescription>
+              Update group name, currency, and manage members.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <GroupSettingsForm
+              group={group}
+              allParticipants={users}
+              initialSelectedParticipants={users.map((u) => u._id)}
+              onSubmit={async (data) => {
+                await updateGroup({
+                  groupId: group._id,
+                  name: data.name,
+                  currency: data.currency,
+                });
+                await updateGroupMembers({
+                  groupId: group._id,
+                  selectedParticipantIds: data.selectedParticipantIds,
+                });
+                router.navigate({
+                  to: "/group/$groupId",
+                  params: { groupId },
+                  search: {
+                    sortBy: "dateDesc",
+                    filterBy: "",
+                  },
+                });
+              }}
+              onCancel={() =>
+                router.navigate({
+                  to: "/group/$groupId",
+                  params: { groupId },
+                  search: {
+                    sortBy: "dateDesc",
+                    filterBy: "",
+                  },
+                })
+              }
+              addUserToGroup={async (name) => {
+                return await addUserToGroup({
+                  name,
+                  groupId: groupId as Id<"groups">,
+                });
+              }}
+              removeUserFromGroup={async (userId, groupId) => {
+                await removeUserFromGroup({ userId, groupId });
+              }}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

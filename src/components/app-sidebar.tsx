@@ -1,4 +1,4 @@
-import { HomeIcon, Menu, Users } from "lucide-react";
+import { HomeIcon, Menu, Users, Wallet } from "lucide-react";
 import { Button } from "./ui/button";
 import {
   SidebarContent,
@@ -27,16 +27,18 @@ const AppHeader = () => {
   if (!isMobile) return null;
 
   return (
-    <div className="sticky top-0 left-0 right-0 z-10 flex items-center justify-between border-b bg-background w-full p-4 md:hidden ">
+    <div className="sticky top-0 left-0 right-0 z-10 flex items-center justify-between border-b bg-background/80 backdrop-blur-md w-full px-4 py-3 md:hidden">
       <Link to="/" className="flex items-center gap-2">
-        <HomeIcon className="h-6 w-6 text-primary" />
-        <h2 className="text-xl font-bold text-foreground">Splitzen</h2>
+        <div className="bg-primary/10 p-1.5 rounded-lg">
+          <Wallet className="h-5 w-5 text-primary" />
+        </div>
+        <h2 className="text-lg font-bold text-foreground tracking-tight">Splitzen</h2>
       </Link>
       <Button
         variant="ghost"
         size="icon"
         onClick={() => setOpenMobile(true)}
-        className="md:hidden"
+        className="md:hidden hover:bg-muted"
       >
         <Menu className="h-5 w-5" />
         <span className="sr-only">Toggle sidebar</span>
@@ -71,7 +73,7 @@ const AppSidebar = ({ children }: { children: React.ReactNode }) => {
         <Sidebar variant="sidebar" className="border-r">
           <SidebarHeader className="border-b">
             <Link to="/" className="flex items-center gap-2 px-2 py-1">
-              <HomeIcon className="h-6 w-6 text-primary" />
+              <Wallet className="h-6 w-6 text-primary" />
               <h2 className="text-xl font-bold text-foreground">Splitzen</h2>
             </Link>
           </SidebarHeader>

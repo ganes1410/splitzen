@@ -8,6 +8,13 @@ import { z } from "zod";
 import { currencies } from "@/lib/currencies";
 import { Combobox } from "@/components/ui/combobox";
 import { Id } from "convex/_generated/dataModel";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export const Route = createFileRoute("/new")({
   component: CreateGroup,
@@ -58,14 +65,14 @@ function CreateGroup() {
 
     const result = isUserPresent
       ? createGroupWithUserSchema.safeParse({
-          groupName: trimmedGroupName,
-          currency,
-        })
+        groupName: trimmedGroupName,
+        currency,
+      })
       : createGroupSchema.safeParse({
-          groupName: trimmedGroupName,
-          userName: trimmedUserName,
-          currency,
-        });
+        groupName: trimmedGroupName,
+        userName: trimmedUserName,
+        currency,
+      });
 
     if (!result.success) {
       setErrors(result.error.issues);
@@ -98,96 +105,104 @@ function CreateGroup() {
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-3xl font-bold text-center text-primary">
-        Create a New Group
-      </h1>
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 max-w-md mx-auto p-6 bg-card rounded-lg shadow-md"
-      >
-        <div>
-          <label
-            htmlFor="group-name"
-            className="block text-sm font-medium text-foreground mb-1"
-          >
-            Group Name
-          </label>
-          <Input
-            id="group-name"
-            name="group-name"
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            placeholder="e.g., Japan Trip 2025"
-            className="w-full"
-            disabled={loading}
-          />
-          {errors?.find((e) => e.path[0] === "groupName") && (
-            <p className="text-destructive text-sm mt-1">
-              {errors.find((e) => e.path[0] === "groupName")?.message}
-            </p>
-          )}
-        </div>
+    <div className="flex flex-1 items-center justify-center min-h-[calc(100vh-4rem)] p-4 md:p-8 bg-muted/10">
+      <Card className="w-full max-w-lg shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Create a New Group</CardTitle>
+          <CardDescription className="text-center">
+            Start tracking expenses with your friends
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label
+                htmlFor="group-name"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Group Name
+              </label>
+              <Input
+                id="group-name"
+                name="group-name"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                placeholder="e.g., Japan Trip 2025"
+                className="h-11"
+                disabled={loading}
+              />
+              {errors?.find((e) => e.path[0] === "groupName") && (
+                <p className="text-destructive text-sm">
+                  {errors.find((e) => e.path[0] === "groupName")?.message}
+                </p>
+              )}
+            </div>
 
-        <div>
-          <label
-            htmlFor="user-name"
-            className="block text-sm font-medium text-foreground mb-1"
-          >
-            Your Name
-          </label>
-          <Input
-            id="user-name"
-            name="user-name"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            placeholder="e.g., Alice"
-            className="w-full"
-            disabled={
-              loading ||
-              (typeof window !== "undefined" &&
-                localStorage.getItem("userId") !== null)
-            }
-          />
-          {errors?.find((e) => e.path[0] === "userName") && (
-            <p className="text-destructive text-sm mt-1">
-              {errors.find((e) => e.path[0] === "userName")?.message}
-            </p>
-          )}
-        </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="user-name"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Your Name
+              </label>
+              <Input
+                id="user-name"
+                name="user-name"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder="e.g., Alice"
+                className="h-11"
+                disabled={
+                  loading ||
+                  (typeof window !== "undefined" &&
+                    localStorage.getItem("userId") !== null)
+                }
+              />
+              {errors?.find((e) => e.path[0] === "userName") && (
+                <p className="text-destructive text-sm">
+                  {errors.find((e) => e.path[0] === "userName")?.message}
+                </p>
+              )}
+            </div>
 
-        <div>
-          <label
-            htmlFor="currency"
-            className="block text-sm font-medium text-foreground mb-1"
-          >
-            Currency
-          </label>
-          <Combobox
-            options={currencies.map((c) => ({
-              value: c.code,
-              label: `${c.code} (${c.symbol})`,
-            }))}
-            value={currency}
-            onChange={setCurrency}
-            placeholder="Select Currency"
-          />
-          {errors?.find((e) => e.path[0] === "currency") && (
-            <p className="text-destructive text-sm mt-1">
-              {errors.find((e) => e.path[0] === "currency")?.message}
-            </p>
-          )}
-        </div>
-        {errors &&
-          !errors.some((e) =>
-            ["groupName", "userName"].includes(e.path[0] as string)
-          ) && (
-            <p className="text-destructive text-sm mt-1">{errors[0].message}</p>
-          )}
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Creating..." : "Create Group"}
-        </Button>
-      </form>
+            <div className="space-y-2">
+              <label
+                htmlFor="currency"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Currency
+              </label>
+              <Combobox
+                options={currencies.map((c) => ({
+                  value: c.code,
+                  label: `${c.code} (${c.symbol})`,
+                }))}
+                value={currency}
+                onChange={setCurrency}
+                placeholder="Select Currency"
+              />
+              {errors?.find((e) => e.path[0] === "currency") && (
+                <p className="text-destructive text-sm">
+                  {errors.find((e) => e.path[0] === "currency")?.message}
+                </p>
+              )}
+            </div>
+
+            {errors &&
+              !errors.some((e) =>
+                ["groupName", "userName"].includes(e.path[0] as string)
+              ) && (
+                <p className="text-destructive text-sm text-center">
+                  {errors[0].message}
+                </p>
+              )}
+
+            <Button type="submit" className="w-full h-11 text-base" disabled={loading}>
+              {loading ? "Creating..." : "Create Group"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

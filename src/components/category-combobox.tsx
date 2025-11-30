@@ -52,7 +52,7 @@ export function CategoryCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full h-11 justify-between"
         >
           {selectedCategory ? (
             <div className="flex items-center">
