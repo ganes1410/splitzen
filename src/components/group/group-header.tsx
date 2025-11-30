@@ -164,9 +164,9 @@ export function GroupHeader({
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         onClick={() => setShowDeleteGroupConfirm(true)}
-                                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                        className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
                                     >
-                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <Trash2 className="mr-2 h-4 w-4 text-red-500" />
                                         Delete Group
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
